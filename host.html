@@ -3,3 +3,47 @@
 <head><meta charset="UTF-8"><title>Host Dashboard</title></head>
 <body><h1>Welcome Host</h1></body>
 </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UVPL Host Dashboard</title>
+  <link rel="stylesheet" href="host-style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>🏐 UVPL Host Dashboard</h1>
+
+    <section>
+      <h2>Upload Team Logo</h2>
+      <select id="teamSelect">
+        <option value="United Challengers">United Challengers</option>
+        <option value="UC Twistter">UC Twistter</option>
+        <option value="Azraq Astronuts">Azraq Astronuts</option>
+        <option value="IJC Ninjas">IJC Ninjas</option>
+        <option value="United Challengers W">United Challengers W</option>
+        <option value="UC Twistter W">UC Twistter W</option>
+        <option value="Azraq Astronuts W">Azraq Astronuts W</option>
+        <option value="IJC Ninjas W">IJC Ninjas W</option>
+      </select>
+      <input type="file" id="logoInput" accept="image/*" />
+      <button onclick="uploadLogo()">Upload Logo</button>
+      <p id="uploadStatus"></p>
+    </section>
+
+    <section>
+      <h2>Add Player</h2>
+      <input type="text" id="playerName" placeholder="Player Name" />
+      <button onclick="addPlayer()">Add Player</button>
+      <ul id="playerList"></ul>
+    </section>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-storage-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="host.js"></script>
+</body>
+</html>
