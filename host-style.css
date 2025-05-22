@@ -1,0 +1,33 @@
+body {
+  font-family: Arial, sans-serif;
+  background: linear-gradient(to bottom, #4B0082, #001f3f);
+  color: white;
+  padding: 20px;
+}
+.container {
+  max-width: 800px;
+  margin: auto;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 10px;
+}
+h1, h2 {
+  color: #ffc0ff;
+}
+input, select {
+  padding: 10px;
+  margin: 10px 0;
+  width: 100%;
+}
+button {
+  padding: 10px 20px;
+  background-color: #4B0082;
+  color: white;
+  border: none;
+  border-radius: 5px;
+}
+ul {
+  list-style-type: disc;
+  margin-top: 10px;
+  padding-left: 20px;
+}
