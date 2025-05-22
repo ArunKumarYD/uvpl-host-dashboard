@@ -52,4 +52,11 @@ nav a.login-btn {
   padding: 5px 10px;
   border-radius: 5px;
 }
+.indian-theme {
+  background: linear-gradient(to bottom, #ff9933, white, #138808);
+  ...
+}
+.indian-theme {
+  background: linear-gradient(to bottom, #f8c471, white, #7dcea0); /* softer saffron-green */
+}
 
