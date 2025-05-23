@@ -1,4 +1,6 @@
 function login() {
+  console.log("Login button clicked"); // ✅ Debugging line
+  
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
   const errorElem = document.getElementById("loginError");
