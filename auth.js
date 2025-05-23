@@ -7,7 +7,7 @@ function login() {
 
   firebase.auth().signInWithEmailAndPassword(email, password)
     .then((userCredential) => {
-      const emailKey = email.replace(/\./g, ",");
+   const emailKey = email;
       firebase.database().ref("userRoles/" + emailKey).once("value")
         .then((snapshot) => {
           const role = snapshot.val();
