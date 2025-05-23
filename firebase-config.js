@@ -9,3 +9,8 @@ const firebaseConfig = {
   measurementId: "G-WQ692S92EP"
 };
 firebase.initializeApp(firebaseConfig);
+"userRoles": {
+  "arunyd125@gmail,com": "host",
+  "referee1@gmail,com": "referee",
+  "referee2@gmail,com": "referee"
+}
