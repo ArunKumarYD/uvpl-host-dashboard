@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Manage UVPL Schedule</title>
+  <link rel="stylesheet" href="host-style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>🛠️ Manage Match Schedule</h1>
+    <input type="text" id="teamA" placeholder="Team A" />
+    <input type="text" id="teamB" placeholder="Team B" />
+    <input type="datetime-local" id="matchTime" />
+    <button onclick="addMatch()">Add Match</button>
+    <ul id="hostScheduleList"></ul>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="host-schedule.js"></script>
+</body>
+</html>
