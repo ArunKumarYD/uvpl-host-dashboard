@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Manage UVPL Points</title>
+  <link rel="stylesheet" href="host-style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>🛠️ Manage Points Table</h1>
+    <select id="teamSelect">
+      <option value="United Challengers">United Challengers</option>
+      <option value="UC Twistter">UC Twistter</option>
+      <option value="Azraq Astronuts">Azraq Astronuts</option>
+      <option value="IJC Ninjas">IJC Ninjas</option>
+      <option value="United Challengers W">United Challengers W</option>
+      <option value="UC Twistter W">UC Twistter W</option>
+      <option value="Azraq Astronuts W">Azraq Astronuts W</option>
+      <option value="IJC Ninjas W">IJC Ninjas W</option>
+    </select>
+    <input type="number" id="played" placeholder="Played" />
+    <input type="number" id="won" placeholder="Won" />
+    <input type="number" id="lost" placeholder="Lost" />
+    <input type="number" id="points" placeholder="Points" />
+    <button onclick="updatePoints()">Update Points</button>
+  </div>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="host-points.js"></script>
+</body>
+</html>
