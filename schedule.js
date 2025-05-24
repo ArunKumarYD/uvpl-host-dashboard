@@ -2,7 +2,7 @@ const db = firebase.database();
 const scheduleList = document.getElementById("scheduleList");
 
 function loadSchedule() {
-  db.ref("schedule").on("value", snapshot => {
+  db.ref("matchSchedule").on("value", snapshot => {
     scheduleList.innerHTML = "";
     snapshot.forEach(child => {
       const match = child.val();
