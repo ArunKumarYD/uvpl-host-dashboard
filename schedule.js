@@ -1,25 +1,21 @@
 const db = firebase.database();
-const scheduleTable = document.getElementById("scheduleTable");
+const scheduleTableBody = document.getElementById("scheduleTableBody");
 
 function loadSchedule() {
-  db.ref("schedule").on("value", snapshot => {
-    scheduleTable.innerHTML = `
-      <tr>
-        <th>Date</th>
-        <th>Time</th>
-        <th>Match</th>
-      </tr>
-    `;
-
+  db.ref("schedule").once("value", snapshot => {
+    scheduleTableBody.innerHTML = "";
     snapshot.forEach(child => {
       const match = child.val();
       const row = document.createElement("tr");
+
       row.innerHTML = `
-        <td>${match.date || "N/A"}</td>
+        <td>${match.date}</td>
         <td>${match.time}</td>
-        <td>${match.teamA} vs ${match.teamB}</td>
+        <td>${match.teamA}</td>
+        <td>${match.teamB}</td>
       `;
-      scheduleTable.appendChild(row);
+
+      scheduleTableBody.appendChild(row);
     });
   });
 }
