@@ -59,4 +59,15 @@ nav a.login-btn {
 .indian-theme {
   background: linear-gradient(to bottom, #f8c471, white, #7dcea0); /* softer saffron-green */
 }
+nav a {
+  margin: 5px;
+  padding: 10px 15px;
+  text-decoration: none;
+  background-color: #4B0082;
+  color: white;
+  border-radius: 8px;
+}
+nav a:hover {
+  background-color: #6a0dad;
+}
 
