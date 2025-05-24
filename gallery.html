@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>UVPL Gallery</title>
+  <link rel="stylesheet" href="host-style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>📸 UVPL Gallery</h1>
+    <div id="galleryGrid" style="display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));"></div>
+  </div>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="gallery.js"></script>
+</body>
+</html>

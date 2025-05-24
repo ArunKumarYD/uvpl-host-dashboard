@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Upload Gallery</title>
+  <link rel="stylesheet" href="host-style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>📤 Upload Match Photo</h1>
+    <input type="file" id="imageInput" accept="image/*" />
+    <button onclick="uploadImage()">Upload</button>
+    <p id="uploadStatus"></p>
+  </div>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="upload-gallery.js"></script>
+</body>
+</html>
