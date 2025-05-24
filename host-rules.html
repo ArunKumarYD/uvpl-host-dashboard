@@ -2,17 +2,20 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>UVPL Rules</title>
+  <title>Edit Rules</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
-    <h1>📘 UVPL Rules & Regulations</h1>
-    <ul id="rulesList"></ul>
+    <h1>✍️ Edit UVPL Rules</h1>
+    <ul id="editableRules"></ul>
+    <input type="text" id="newRule" placeholder="Add new rule" />
+    <button onclick="addRule()">Add Rule</button>
+    <p id="statusMsg"></p>
   </div>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
-  <script src="rules.js"></script>
+  <script src="edit-rules.js"></script>
 </body>
 </html>
