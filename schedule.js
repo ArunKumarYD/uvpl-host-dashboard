@@ -2,7 +2,7 @@ const db = firebase.database();
 const scheduleTableBody = document.getElementById("scheduleTableBody");
 
 function loadSchedule() {
-  db.ref("schedule").once("value", snapshot => {
+  db.ref("schedule").on("value", snapshot => { ... });
     scheduleTableBody.innerHTML = "";
     snapshot.forEach(child => {
       const match = child.val();
