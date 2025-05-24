@@ -2,13 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>UVPL Match Schedule</title>
-  <link rel="stylesheet" href="host-style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>📅 UVPL Match Schedule</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="container">
     <h1>📅 UVPL Match Schedule</h1>
-    <table id="scheduleTable" class="match-table"></table>
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Team A</th>
+          <th>Team B</th>
+        </tr>
+      </thead>
+      <tbody id="scheduleTableBody">
+        <!-- Matches will be inserted here -->
+      </tbody>
+    </table>
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
