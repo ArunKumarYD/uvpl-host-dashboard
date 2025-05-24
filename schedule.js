@@ -6,10 +6,20 @@ function loadSchedule() {
     scheduleList.innerHTML = "";
     snapshot.forEach(child => {
       const match = child.val();
-      const li = document.createElement("li");
-      li.textContent = `${match.teamA} vs ${match.teamB} @ ${match.time}`;
-      scheduleList.appendChild(li);
+
+      const matchCard = document.createElement("div");
+      matchCard.className = "match-card";
+
+      matchCard.innerHTML = `
+        <div class="match-date">📅 ${match.date}</div>
+        <div class="match-teams">🏐 <strong>${match.teamA}</strong> vs <strong>${match.teamB}</strong></div>
+        <div class="match-time">⏰ ${match.time}</div>
+        <hr/>
+      `;
+
+      scheduleList.appendChild(matchCard);
     });
   });
 }
+
 window.onload = loadSchedule;
