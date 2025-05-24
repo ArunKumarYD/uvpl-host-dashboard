@@ -4,15 +4,37 @@
   <meta charset="UTF-8" />
   <title>UVPL Gallery</title>
   <link rel="stylesheet" href="host-style.css" />
+  <style>
+    #galleryGrid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+    #galleryGrid img {
+      width: 100%;
+      border-radius: 10px;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
-    <h1>📸 UVPL Gallery</h1>
-    <div id="galleryGrid" style="display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));"></div>
+    <h1>📸 UVPL Gallery (Static)</h1>
+    <div id="galleryGrid"></div>
   </div>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
-  <script src="firebase-config.js"></script>
-  <script src="gallery.js"></script>
+  <script>
+    // Add your GitHub-hosted image URLs here
+    const imageUrls = [
+      "https://raw.githubusercontent.com/ArunKumarYD/uvpl-host-dashboard/main/gallery/photo1.jpg",
+      "https://raw.githubusercontent.com/ArunKumarYD/uvpl-host-dashboard/main/gallery/photo2.jpg"
+      // Add more images as you upload
+    ];
+
+    const galleryGrid = document.getElementById("galleryGrid");
+    imageUrls.forEach(url => {
+      const img = document.createElement("img");
+      img.src = url;
+      galleryGrid.appendChild(img);
+    });
+  </script>
 </body>
 </html>
