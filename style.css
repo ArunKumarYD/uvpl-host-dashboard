@@ -96,3 +96,24 @@ nav a:hover {
   font-size: 14px;
   color: #666;
 }
+.match-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.match-table th, .match-table td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: center;
+}
+
+.match-table th {
+  background-color: #4B0082;
+  color: white;
+}
+
+.match-table td {
+  background-color: #f9f9f9;
+}
