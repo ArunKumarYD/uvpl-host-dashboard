@@ -51,6 +51,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
+
   <script>
     const db = firebase.database();
     const container = document.getElementById("scheduleContainer");
@@ -59,18 +60,21 @@
 
     db.ref("schedule").once("value").then(snapshot => {
       const data = snapshot.val();
-      const dates = Object.keys(data).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k)).sort();
+      if (!data) return;
 
-      dates.forEach(date => {
-        const dayMatches = data[date];
+      // Filter keys that match date format YYYY-MM-DD
+      const dateKeys = Object.keys(data).filter(key => /^\d{4}-\d{2}-\d{2}$/.test(key)).sort();
 
-        const dateDiv = document.createElement("div");
-        dateDiv.classList.add("date-section");
+      dateKeys.forEach(date => {
+        const matches = data[date];
 
-        const dateHeader = document.createElement("div");
-        dateHeader.classList.add("date-header");
-        dateHeader.textContent = `📅 ${date}`;
-        dateDiv.appendChild(dateHeader);
+        const section = document.createElement("div");
+        section.classList.add("date-section");
+
+        const dateTitle = document.createElement("div");
+        dateTitle.classList.add("date-header");
+        dateTitle.textContent = `📅 ${date}`;
+        section.appendChild(dateTitle);
 
         const table = document.createElement("table");
         table.innerHTML = `
@@ -88,21 +92,21 @@
         const tbody = table.querySelector("tbody");
 
         timeSlots.forEach(time => {
-          const match = dayMatches[time];
+          const match = matches[time];
           if (match) {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
+            const row = document.createElement("tr");
+            row.innerHTML = `
               <td>${time}</td>
-              <td>${match.category || ""}</td>
-              <td>${match.team1 || ""}</td>
-              <td>${match.team2 || ""}</td>
+              <td>${match.category || match.gender || ""}</td>
+              <td>${match.team1}</td>
+              <td>${match.team2}</td>
             `;
-            tbody.appendChild(tr);
+            tbody.appendChild(row);
           }
         });
 
-        dateDiv.appendChild(table);
-        container.appendChild(dateDiv);
+        section.appendChild(table);
+        container.appendChild(section);
       });
     });
   </script>
