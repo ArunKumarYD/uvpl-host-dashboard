@@ -1,53 +1,99 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>UVPL - United Volleyball Premier League</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UVPL – United Creation Volleyball League</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: white;
+      color: black;
+      padding: 2rem;
+    }
+    .live-banner {
+      background-color: red;
+      color: white;
+      font-weight: bold;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.5rem;
+      border-radius: 0.5rem;
+      margin-bottom: 2rem;
+    }
+    .section {
+      margin-bottom: 2rem;
+    }
+    a.button {
+      display: inline-block;
+      margin-right: 1rem;
+      padding: 0.75rem 1.5rem;
+      background-color: #2e1065;
+      color: white;
+      border-radius: 5px;
+      text-decoration: none;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+  </style>
 </head>
-<body class="indian-theme">
-  <header>
-    <h1>🇮🇳 UVPL Volleyball Tournament</h1>
-    <nav>
-      <a href="schedule.html">📅 Schedule</a>
-      <a href="points.html">🏆 Points Table</a>
-      <a href="players.html">👥 Players</a>
-      <a href="rules.html">📘 Rules</a>
-      <a href="gallery.html">🖼️ Gallery</a>
-      <a href="login.html" class="login-btn">🔐 Login</a>
-    </nav>
-  </header>
+<body>
+  <h1>🏐 United Creation Volleyball Premier League (UVPL)</h1>
 
-  <main>
-    <section>
-      <h2>🔥 Live Match Status</h2>
-      <div id="liveScore" style="font-size: 1.2rem; margin-top: 10px;">Loading live score...</div>
-    </section>
+  <div id="liveMatch" class="live-banner" style="display: none;"></div>
 
-    <section>
-      <h2>Welcome to United Volleyball Premier League</h2>
-      <p>Experience the passion, power, and pride of volleyball.</p>
-    </section>
-  </main>
+  <div class="section">
+    <a class="button" href="schedule.html">📅 Match Schedule</a>
+    <a class="button" href="point.html">📊 Points Table</a>
+    <a class="button" href="rules.html">📘 Rules</a>
+    <a class="button" href="gallery.html">🖼️ Gallery</a>
+    <a class="button" href="login.html">🔐 Host/Referee Login</a>
+  </div>
 
-  <footer>&copy; 2025 UVPL. All rights reserved.</footer>
-
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
+
   <script>
     const db = firebase.database();
-    const liveDiv = document.getElementById("liveScore");
-    db.ref("liveScore").on("value", (snap) => {
-      const val = snap.val();
-      if (val && val.team1 && val.team2) {
-        liveDiv.innerHTML = `<strong>${val.team1}</strong> vs <strong>${val.team2}</strong> (${val.category}) - <strong>${val.status}</strong>`;
-      } else {
-        liveDiv.innerHTML = "No match currently live.";
-      }
-    });
+    const liveDiv = document.getElementById("liveMatch");
+
+    function formatTime24ToMinutes(timeStr) {
+      const [h, m] = timeStr.split(":").map(Number);
+      return h * 60 + m;
+    }
+
+    function checkLiveMatch() {
+      const now = new Date();
+      const today = now.toISOString().split("T")[0]; // "YYYY-MM-DD"
+      const nowMinutes = now.getHours() * 60 + now.getMinutes(); // convert to total minutes
+
+      db.ref("schedule/" + today).once("value").then(snapshot => {
+        const matches = snapshot.val();
+        if (!matches) return;
+
+        const timeSlots = ["18:00", "18:45", "19:30", "20:15"];
+        for (let time of timeSlots) {
+          const match = matches[time];
+          if (!match) continue;
+
+          const start = formatTime24ToMinutes(time);
+          const end = start + 40; // Assume 40 min per match
+          if (nowMinutes >= start && nowMinutes < end) {
+            liveDiv.innerText = `🔥 LIVE: ${match.team1} vs ${match.team2} (${match.category || match.gender || ''})`;
+            liveDiv.style.display = "block";
+            break;
+          }
+        }
+      });
+    }
+
+    checkLiveMatch();
   </script>
 </body>
 </html>
