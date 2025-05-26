@@ -1,32 +1,63 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>📅 UVPL Match Schedule</title>
+  <title>UVPL Schedule</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
-  <div class="container">
-    <h1>📅 UVPL Match Schedule</h1>
-  <table class="match-table">
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Time</th>
-          <th>Team A</th>
-          <th>Team B</th>
-        </tr>
-      </thead>
-      <tbody id="scheduleTableBody">
-        <!-- Matches will be inserted here -->
-      </tbody>
-    </table>
-  </div>
+<body class="indian-theme">
+  <header>
+    <h1>📅 Match Schedule – UVPL</h1>
+    <nav>
+      <a href="index.html">🏠 Home</a>
+      <a href="points.html">🏆 Points Table</a>
+      <a href="players.html">👥 Players</a>
+      <a href="rules.html">📘 Rules</a>
+      <a href="gallery.html">🖼️ Gallery</a>
+      <a href="login.html">🔐 Login</a>
+    </nav>
+  </header>
+
+  <main>
+    <h2>Upcoming Matches</h2>
+    <div id="scheduleContainer"></div>
+  </main>
+
+  <footer>&copy; 2025 UVPL. All rights reserved.</footer>
 
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
-  <script src="schedule.js"></script>
+  <script>
+    const db = firebase.database();
+    const container = document.getElementById("scheduleContainer");
+
+    db.ref("schedule").once("value").then(snapshot => {
+      const data = snapshot.val();
+      if (!data) {
+        container.innerHTML = "<p>No matches scheduled.</p>";
+        return;
+      }
+
+      const sortedDates = Object.keys(data).sort();
+      sortedDates.forEach(date => {
+        const matchDay = data[date];
+        const section = document.createElement("section");
+        section.innerHTML = `<h3>${date}</h3><ul></ul>`;
+        const ul = section.querySelector("ul");
+
+        Object.keys(matchDay).sort().forEach(time => {
+          const match = matchDay[time];
+          const li = document.createElement("li");
+          li.textContent = `${time} – ${match.team1} 🆚 ${match.team2} (${match.category})`;
+          ul.appendChild(li);
+        });
+
+        container.appendChild(section);
+      });
+    });
+  </script>
 </body>
 </html>
