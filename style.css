@@ -120,3 +120,12 @@ nav a:hover {
 body.indian-theme {
   background-color: #f0f8ff;  /* light blue background */
 }
+#menPoints tbody tr:nth-child(even),
+#womenPoints tbody tr:nth-child(even) {
+  background-color: #f0f8ff; /* Light blue */
+}
+
+#menPoints tbody tr:hover,
+#womenPoints tbody tr:hover {
+  background-color: #dbeeff; /* Highlight on hover */
+}
