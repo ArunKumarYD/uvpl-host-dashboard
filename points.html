@@ -3,86 +3,72 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>UVPL Points Table</title>
+  <title>Points Table</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body class="indian-theme">
-  <header>
-    <h1>🏆 Points Table – UVPL</h1>
-    <nav>
-      <a href="index.html">🏠 Home</a>
-      <a href="schedule.html">📅 Schedule</a>
-      <a href="players.html">👥 Players</a>
-      <a href="rules.html">📘 Rules</a>
-      <a href="gallery.html">🖼️ Gallery</a>
-      <a href="login.html">🔐 Login</a>
-    </nav>
-  </header>
+<body class="bg-white text-black">
+  <div class="p-4">
+    <h1 class="text-2xl font-bold mb-4">Men's Points Table</h1>
+    <table id="menPoints" class="w-full table-auto border border-gray-300 mb-6">
+      <thead>
+        <tr class="bg-gray-200">
+          <th class="border px-2 py-1">Team</th>
+          <th class="border px-2 py-1">Played</th>
+          <th class="border px-2 py-1">Won</th>
+          <th class="border px-2 py-1">Lost</th>
+          <th class="border px-2 py-1">Points</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
 
-  <main>
-    <section>
-      <h2>Men's Points Table</h2>
-      <table border="1" width="100%" id="menPoints">
-        <thead>
-          <tr>
-            <th>Team</th><th>Played</th><th>Won</th><th>Lost</th><th>Points</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </section>
+    <h1 class="text-2xl font-bold mb-4">Women's Points Table</h1>
+    <table id="womenPoints" class="w-full table-auto border border-gray-300">
+      <thead>
+        <tr class="bg-gray-200">
+          <th class="border px-2 py-1">Team</th>
+          <th class="border px-2 py-1">Played</th>
+          <th class="border px-2 py-1">Won</th>
+          <th class="border px-2 py-1">Lost</th>
+          <th class="border px-2 py-1">Points</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
-    <section>
-      <h2>Women's Points Table</h2>
-      <table border="1" width="100%" id="womenPoints">
-        <thead>
-          <tr>
-            <th>Team</th><th>Played</th><th>Won</th><th>Lost</th><th>Points</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </section>
-  </main>
-
-  <footer>&copy; 2025 UVPL. All rights reserved.</footer>
-
+  <!-- Firebase + Config -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
+
   <script>
     const db = firebase.database();
+    const menBody = document.querySelector("#menPoints tbody");
+    const womenBody = document.querySelector("#womenPoints tbody");
 
-    function populatePoints(refPath, tableId) {
-      db.ref(refPath).on("value", snapshot => {
+    function loadPoints(gender, tableBody) {
+      db.ref(`points/${gender}`).once("value").then(snapshot => {
         const data = snapshot.val();
-        const tbody = document.getElementById(tableId).querySelector("tbody");
-        tbody.innerHTML = "";
-
-        if (!data) {
-          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No data available</td></tr>`;
-          return;
+        tableBody.innerHTML = "";
+        if (data) {
+          Object.values(data).forEach(team => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td class="border px-2 py-1">${team.name || ''}</td>
+              <td class="border px-2 py-1">${team.played || 0}</td>
+              <td class="border px-2 py-1">${team.won || 0}</td>
+              <td class="border px-2 py-1">${team.lost || 0}</td>
+              <td class="border px-2 py-1">${team.points || 0}</td>
+            `;
+            tableBody.appendChild(row);
+          });
         }
-
-        Object.keys(data).forEach(team => {
-          const teamData = data[team];
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${team}</td>
-            <td>${teamData.played ?? 0}</td>
-            <td>${teamData.won ?? 0}</td>
-            <td>${teamData.lost ?? 0}</td>
-            <td>${teamData.points ?? 0}</td>
-          `;
-          tbody.appendChild(row);
-        });
       });
     }
 
-    window.onload = () => {
-      populatePoints("points/Men", "menPoints");
-      populatePoints("points/Women", "womenPoints");
-    };
+    loadPoints("Men", menBody);
+    loadPoints("Women", womenBody);
   </script>
 </body>
 </html>
