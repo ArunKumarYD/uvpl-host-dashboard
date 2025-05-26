@@ -241,16 +241,39 @@
     }
 
     function declareWinner() {
-      const matchKey = document.getElementById("matchSelect").value;
-      const winner = document.getElementById("winnerSelect").value;
-      if (!matchKey || !winner) return alert("Select both match and winner");
+     function declareWinner() {
+  const matchKey = document.getElementById("matchSelect").value;
+  const winner = document.getElementById("winnerSelect").value;
+  if (!matchKey || !winner) return alert("Select both match and winner");
 
-      db.ref(`schedule/${matchKey}`).update({ status: "Completed", winner }).then(() => {
-        alert("🏆 Winner declared!");
-        loadMatchList();
-      });
-    }
+  db.ref(`schedule/${matchKey}`).once("value").then(snapshot => {
+    const match = snapshot.val();
+    if (!match) return alert("Match not found!");
 
+    const loser = match.teamA === winner ? match.teamB : match.teamA;
+
+    // Update match status
+    db.ref(`schedule/${matchKey}`).update({
+      status: "Completed",
+      winner
+    });
+
+    const gender = match.gender;
+    const updates = {};
+
+    updates[`points/${gender}/${winner}/played`] = firebase.database.ServerValue.increment(1);
+    updates[`points/${gender}/${winner}/won`] = firebase.database.ServerValue.increment(1);
+    updates[`points/${gender}/${winner}/points`] = firebase.database.ServerValue.increment(2);
+
+    updates[`points/${gender}/${loser}/played`] = firebase.database.ServerValue.increment(1);
+    updates[`points/${gender}/${loser}/lost`] = firebase.database.ServerValue.increment(1);
+
+    db.ref().update(updates).then(() => {
+      alert("🏆 Winner declared & points updated!");
+      loadMatchList();
+    });
+  });
+}
     // RULES
     function loadRules() {
       db.ref("rules").once("value", snap => {
