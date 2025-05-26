@@ -3,54 +3,107 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Match Schedule</title>
+  <title>UVPL Match Schedule</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fff;
+      color: #000;
+      padding: 2rem;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .date-section {
+      margin-bottom: 2rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.5rem;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.75rem;
+      text-align: center;
+    }
+    th {
+      background-color: #2e1065;
+      color: white;
+    }
+    .date-header {
+      font-weight: bold;
+      font-size: 1.2rem;
+      margin-top: 1rem;
+      background-color: #f3f4f6;
+      padding: 0.5rem;
+    }
+  </style>
 </head>
-<body class="bg-white text-black">
-  <div class="p-4">
-    <h1 class="text-2xl font-bold mb-4">Match Schedule</h1>
-    <table id="scheduleTable" class="w-full table-auto border border-gray-300">
-      <thead>
-        <tr class="bg-gray-200">
-          <th class="border px-2 py-1">Date</th>
-          <th class="border px-2 py-1">Time</th>
-          <th class="border px-2 py-1">Category</th>
-          <th class="border px-2 py-1">Team 1</th>
-          <th class="border px-2 py-1">Team 2</th>
-          <th class="border px-2 py-1">Venue</th>
-          <th class="border px-2 py-1">Status</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+<body>
+  <h1>🏐 UVPL Match Schedule</h1>
 
-  <!-- Firebase + Config -->
+  <!-- Schedule Table -->
+  <div id="scheduleContainer"></div>
+
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
-
   <script>
     const db = firebase.database();
-    const tableBody = document.querySelector("#scheduleTable tbody");
+    const container = document.getElementById("scheduleContainer");
+
+    const timeSlots = ["18:00", "18:45", "19:30", "20:15"];
 
     db.ref("schedule").once("value").then(snapshot => {
       const data = snapshot.val();
-      if (data) {
-        Object.values(data).forEach(match => {
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td class="border px-2 py-1">${match.date || ''}</td>
-            <td class="border px-2 py-1">${match.time || ''}</td>
-            <td class="border px-2 py-1">${match.gender || ''}</td>
-            <td class="border px-2 py-1">${match.team1 || ''}</td>
-            <td class="border px-2 py-1">${match.team2 || ''}</td>
-            <td class="border px-2 py-1">${match.venue || ''}</td>
-            <td class="border px-2 py-1">${match.status || ''}</td>
-          `;
-          tableBody.appendChild(row);
+      const dates = Object.keys(data).filter(k => /^\d{4}-\d{2}-\d{2}$/.test(k)).sort();
+
+      dates.forEach(date => {
+        const dayMatches = data[date];
+
+        const dateDiv = document.createElement("div");
+        dateDiv.classList.add("date-section");
+
+        const dateHeader = document.createElement("div");
+        dateHeader.classList.add("date-header");
+        dateHeader.textContent = `📅 ${date}`;
+        dateDiv.appendChild(dateHeader);
+
+        const table = document.createElement("table");
+        table.innerHTML = `
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Category</th>
+              <th>Team 1</th>
+              <th>Team 2</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        `;
+
+        const tbody = table.querySelector("tbody");
+
+        timeSlots.forEach(time => {
+          const match = dayMatches[time];
+          if (match) {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${time}</td>
+              <td>${match.category || ""}</td>
+              <td>${match.team1 || ""}</td>
+              <td>${match.team2 || ""}</td>
+            `;
+            tbody.appendChild(tr);
+          }
         });
-      }
+
+        dateDiv.appendChild(table);
+        container.appendChild(dateDiv);
+      });
     });
   </script>
 </body>
