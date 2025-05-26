@@ -1,62 +1,56 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>UVPL Schedule</title>
+  <title>Match Schedule</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body class="indian-theme">
-  <header>
-    <h1>📅 Match Schedule – UVPL</h1>
-    <nav>
-      <a href="index.html">🏠 Home</a>
-      <a href="points.html">🏆 Points Table</a>
-      <a href="players.html">👥 Players</a>
-      <a href="rules.html">📘 Rules</a>
-      <a href="gallery.html">🖼️ Gallery</a>
-      <a href="login.html">🔐 Login</a>
-    </nav>
-  </header>
+<body class="bg-white text-black">
+  <div class="p-4">
+    <h1 class="text-2xl font-bold mb-4">Match Schedule</h1>
+    <table id="scheduleTable" class="w-full table-auto border border-gray-300">
+      <thead>
+        <tr class="bg-gray-200">
+          <th class="border px-2 py-1">Date</th>
+          <th class="border px-2 py-1">Time</th>
+          <th class="border px-2 py-1">Category</th>
+          <th class="border px-2 py-1">Team 1</th>
+          <th class="border px-2 py-1">Team 2</th>
+          <th class="border px-2 py-1">Venue</th>
+          <th class="border px-2 py-1">Status</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
-  <main>
-    <h2>Upcoming Matches</h2>
-    <div id="scheduleContainer"></div>
-  </main>
-
-  <footer>&copy; 2025 UVPL. All rights reserved.</footer>
-
+  <!-- Firebase + Config -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
+
   <script>
     const db = firebase.database();
-    const container = document.getElementById("scheduleContainer");
+    const tableBody = document.querySelector("#scheduleTable tbody");
 
     db.ref("schedule").once("value").then(snapshot => {
       const data = snapshot.val();
-      if (!data) {
-        container.innerHTML = "<p>No matches scheduled.</p>";
-        return;
-      }
-
-      const sortedDates = Object.keys(data).sort();
-      sortedDates.forEach(date => {
-        const matchDay = data[date];
-        const section = document.createElement("section");
-        section.innerHTML = `<h3>${date}</h3><ul></ul>`;
-        const ul = section.querySelector("ul");
-
-        Object.keys(matchDay).sort().forEach(time => {
-          const match = matchDay[time];
-          const li = document.createElement("li");
-          li.textContent = `${time} – ${match.team1} 🆚 ${match.team2} (${match.category})`;
-          ul.appendChild(li);
+      if (data) {
+        Object.values(data).forEach(match => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td class="border px-2 py-1">${match.date || ''}</td>
+            <td class="border px-2 py-1">${match.time || ''}</td>
+            <td class="border px-2 py-1">${match.gender || ''}</td>
+            <td class="border px-2 py-1">${match.team1 || ''}</td>
+            <td class="border px-2 py-1">${match.team2 || ''}</td>
+            <td class="border px-2 py-1">${match.venue || ''}</td>
+            <td class="border px-2 py-1">${match.status || ''}</td>
+          `;
+          tableBody.appendChild(row);
         });
-
-        container.appendChild(section);
-      });
+      }
     });
   </script>
 </body>
