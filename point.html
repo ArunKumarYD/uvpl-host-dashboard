@@ -68,7 +68,7 @@
           const teamData = data[team];
           const row = document.createElement("tr");
           row.innerHTML = `
-            <td>${team}</td>
+            <td>${teamData.name ?? team}</td>
             <td>${teamData.played ?? 0}</td>
             <td>${teamData.won ?? 0}</td>
             <td>${teamData.lost ?? 0}</td>
