@@ -2,74 +2,149 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>UVPL Host Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Host Dashboard – UVPL</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    main {
+      padding: 2rem;
+    }
+    select, button {
+      padding: 0.5rem;
+      font-size: 1rem;
+      margin: 1rem 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.75rem;
+      text-align: center;
+    }
+    th {
+      background-color: #2e1065;
+      color: white;
+    }
+    td input {
+      width: 100%;
+      padding: 0.25rem;
+      text-align: center;
+    }
+  </style>
 </head>
 <body class="indian-theme">
   <header>
-    <h1>🏐 UVPL Host Dashboard</h1>
+    <h1>🏐 Host Dashboard – UVPL</h1>
     <nav>
-      <button onclick="showSection('schedule')">📅 Match Scheduler</button>
-      <button onclick="showSection('winner')">🏆 Declare Winner</button>
-      <button onclick="showSection('players')">👥 Player Manager</button>
-      <button onclick="showSection('rules')">📜 Rules Editor</button>
+      <a href="index.html">🏠 Home</a>
+      <a href="point.html">📊 Points Table</a>
+      <a href="schedule.html">📅 Schedule</a>
+      <a href="rules.html">📘 Rules</a>
     </nav>
   </header>
 
   <main>
-    <section id="schedule" class="dashboard-section">
-      <h2>📅 Match Scheduler</h2>
-      <form id="matchForm">
-        <label>Gender:
-          <select name="gender">
-            <option value="Men">Men</option>
-            <option value="Women">Women</option>
-          </select>
-        </label>
-        <label>Team A: <input type="text" name="teamA" /></label>
-        <label>Team B: <input type="text" name="teamB" /></label>
-        <label>Date: <input type="date" name="date" /></label>
-        <label>Time: <input type="time" name="time" /></label>
-        <button type="submit">Add Match</button>
-      </form>
-      <div id="scheduleStatus"></div>
-    </section>
+    <label for="teamSelect">Select Team:</label>
+    <select id="teamSelect">
+      <option value="">-- Choose Team --</option>
+      <optgroup label="Men's Teams">
+        <option value="Men/United Challengers">United Challengers</option>
+        <option value="Men/UC Twistter">UC Twistter</option>
+        <option value="Men/Azraq Astronuts">Azraq Astronuts</option>
+        <option value="Men/IJC Ninjas">IJC Ninjas</option>
+      </optgroup>
+      <optgroup label="Women's Teams">
+        <option value="Women/United Challengers">United Challengers</option>
+        <option value="Women/UC Twistter">UC Twistter</option>
+        <option value="Women/Azraq Astronuts">Azraq Astronuts</option>
+        <option value="Women/IJC Ninjas">IJC Ninjas</option>
+      </optgroup>
+    </select>
 
-    <section id="winner" class="dashboard-section" style="display:none">
-      <h2>🏆 Declare Winner</h2>
-      <select id="matchSelector"></select>
-      <button onclick="declareWinner('A')">Team A Wins</button>
-      <button onclick="declareWinner('B')">Team B Wins</button>
-      <div id="winnerStatus"></div>
-    </section>
+    <table id="playerTable" style="display:none;">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Matches</th>
+          <th>Points</th>
+          <th>Role</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
 
-    <section id="players" class="dashboard-section" style="display:none">
-      <h2>👥 Player Manager</h2>
-      <form id="playerForm">
-        <label>Gender:
-          <select name="gender">
-            <option value="Men">Men</option>
-            <option value="Women">Women</option>
-          </select>
-        </label>
-        <label>Team: <input type="text" name="team" /></label>
-        <label>Player Name: <input type="text" name="name" /></label>
-        <label>Jersey #: <input type="number" name="jersey" /></label>
-        <label>Role: <input type="text" name="role" /></label>
-        <button type="submit">Add Player</button>
-      </form>
-      <div id="playerStatus"></div>
-    </section>
-
-    <section id="rules" class="dashboard-section" style="display:none">
-      <h2>📜 Rules Editor</h2>
-      <textarea id="rulesArea" rows="10" style="width:100%"></textarea>
-      <button onclick="saveRules()">Save Rules</button>
-      <div id="rulesStatus"></div>
-    </section>
+    <button id="saveBtn" style="display:none;">💾 Save Changes</button>
   </main>
 
-  <script src="scripts/host.js"></script>
+  <footer>&copy; 2025 UVPL. All rights reserved.</footer>
+
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script>
+    const db = firebase.database();
+    const teamSelect = document.getElementById("teamSelect");
+    const playerTable = document.getElementById("playerTable");
+    const saveBtn = document.getElementById("saveBtn");
+    const tbody = playerTable.querySelector("tbody");
+    let currentPath = "";
+
+    teamSelect.addEventListener("change", () => {
+      const teamPath = teamSelect.value;
+      if (!teamPath) {
+        playerTable.style.display = "none";
+        saveBtn.style.display = "none";
+        return;
+      }
+
+      currentPath = `players/${teamPath}`;
+      db.ref(currentPath).once("value", snapshot => {
+        const players = snapshot.val();
+        tbody.innerHTML = "";
+        if (!players) {
+          tbody.innerHTML = `<tr><td colspan="4">No players found.</td></tr>`;
+          playerTable.style.display = "table";
+          saveBtn.style.display = "inline-block";
+          return;
+        }
+
+        Object.keys(players).forEach(key => {
+          const p = players[key];
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td><input type="text" value="${p.name || ''}" data-key="${key}" data-field="name"/></td>
+            <td><input type="number" value="${p.matches || 0}" data-key="${key}" data-field="matches"/></td>
+            <td><input type="number" value="${p.points || 0}" data-key="${key}" data-field="points"/></td>
+            <td><input type="text" value="${p.role || ''}" data-key="${key}" data-field="role"/></td>
+          `;
+          tbody.appendChild(row);
+        });
+
+        playerTable.style.display = "table";
+        saveBtn.style.display = "inline-block";
+      });
+    });
+
+    saveBtn.addEventListener("click", () => {
+      const inputs = playerTable.querySelectorAll("input");
+      const updates = {};
+
+      inputs.forEach(input => {
+        const key = input.dataset.key;
+        const field = input.dataset.field;
+        if (!updates[key]) updates[key] = {};
+        updates[key][field] = input.value;
+      });
+
+      Object.keys(updates).forEach(key => {
+        db.ref(`${currentPath}/${key}`).update(updates[key]);
+      });
+
+      alert("✅ Player data updated successfully!");
+    });
+  </script>
 </body>
 </html>
