@@ -1,54 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><title>Host Dashboard</title></head>
-<body><h1>Welcome Host</h1></body>
-</html>
-<!DOCTYPE html>
-<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>UVPL Host Dashboard</title>
-  <link rel="stylesheet" href="host-style.css" />
+  <link rel="stylesheet" href="style.css" />
 </head>
-<body>
-  <div class="container">
+<body class="indian-theme">
+  <header>
     <h1>🏐 UVPL Host Dashboard</h1>
-    
-<div style="margin: 20px 0;">
-  <a href="host-rules.html" class="main-button" style="padding: 10px 15px; background-color: #4B0082; color: white; border-radius: 8px; text-decoration: none;">
-    ✍️ Edit Rules & Regulations
-  </a>
-</div>
-    <section>
-      <h2>Upload Team Logo</h2>
-      <select id="teamSelect">
-        <option value="United Challengers">United Challengers</option>
-        <option value="UC Twistter">UC Twistter</option>
-        <option value="Azraq Astronuts">Azraq Astronuts</option>
-        <option value="IJC Ninjas">IJC Ninjas</option>
-        <option value="United Challengers W">United Challengers W</option>
-        <option value="UC Twistter W">UC Twistter W</option>
-        <option value="Azraq Astronuts W">Azraq Astronuts W</option>
-        <option value="IJC Ninjas W">IJC Ninjas W</option>
-      </select>
-      <input type="file" id="logoInput" accept="image/*" />
-      <button onclick="uploadLogo()">Upload Logo</button>
-      <p id="uploadStatus"></p>
+    <nav>
+      <button onclick="showSection('schedule')">📅 Match Scheduler</button>
+      <button onclick="showSection('winner')">🏆 Declare Winner</button>
+      <button onclick="showSection('players')">👥 Player Manager</button>
+      <button onclick="showSection('rules')">📜 Rules Editor</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="schedule" class="dashboard-section">
+      <h2>📅 Match Scheduler</h2>
+      <form id="matchForm">
+        <label>Gender:
+          <select name="gender">
+            <option value="Men">Men</option>
+            <option value="Women">Women</option>
+          </select>
+        </label>
+        <label>Team A: <input type="text" name="teamA" /></label>
+        <label>Team B: <input type="text" name="teamB" /></label>
+        <label>Date: <input type="date" name="date" /></label>
+        <label>Time: <input type="time" name="time" /></label>
+        <button type="submit">Add Match</button>
+      </form>
+      <div id="scheduleStatus"></div>
     </section>
 
-    <section>
-      <h2>Add Player</h2>
-      <input type="text" id="playerName" placeholder="Player Name" />
-      <button onclick="addPlayer()">Add Player</button>
-      <ul id="playerList"></ul>
+    <section id="winner" class="dashboard-section" style="display:none">
+      <h2>🏆 Declare Winner</h2>
+      <select id="matchSelector"></select>
+      <button onclick="declareWinner('A')">Team A Wins</button>
+      <button onclick="declareWinner('B')">Team B Wins</button>
+      <div id="winnerStatus"></div>
     </section>
-  </div>
 
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-storage-compat.js"></script>
-  <script src="firebase-config.js"></script>
-  <script src="host.js"></script>
+    <section id="players" class="dashboard-section" style="display:none">
+      <h2>👥 Player Manager</h2>
+      <form id="playerForm">
+        <label>Gender:
+          <select name="gender">
+            <option value="Men">Men</option>
+            <option value="Women">Women</option>
+          </select>
+        </label>
+        <label>Team: <input type="text" name="team" /></label>
+        <label>Player Name: <input type="text" name="name" /></label>
+        <label>Jersey #: <input type="number" name="jersey" /></label>
+        <label>Role: <input type="text" name="role" /></label>
+        <button type="submit">Add Player</button>
+      </form>
+      <div id="playerStatus"></div>
+    </section>
+
+    <section id="rules" class="dashboard-section" style="display:none">
+      <h2>📜 Rules Editor</h2>
+      <textarea id="rulesArea" rows="10" style="width:100%"></textarea>
+      <button onclick="saveRules()">Save Rules</button>
+      <div id="rulesStatus"></div>
+    </section>
+  </main>
+
+  <script src="scripts/host.js"></script>
 </body>
 </html>
