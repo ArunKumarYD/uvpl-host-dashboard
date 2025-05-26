@@ -59,22 +59,30 @@
         const tbody = document.getElementById(tableId).querySelector("tbody");
         tbody.innerHTML = "";
 
+        if (!data) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No data available</td></tr>`;
+          return;
+        }
+
         Object.keys(data).forEach(team => {
+          const teamData = data[team];
           const row = document.createElement("tr");
           row.innerHTML = `
             <td>${team}</td>
-            <td>${data[team].played}</td>
-            <td>${data[team].won}</td>
-            <td>${data[team].lost}</td>
-            <td>${data[team].points}</td>
+            <td>${teamData.played ?? 0}</td>
+            <td>${teamData.won ?? 0}</td>
+            <td>${teamData.lost ?? 0}</td>
+            <td>${teamData.points ?? 0}</td>
           `;
           tbody.appendChild(row);
         });
       });
     }
 
-    populatePoints("points/Men", "menPoints");
-    populatePoints("points/Women", "womenPoints");
+    window.onload = () => {
+      populatePoints("points/Men", "menPoints");
+      populatePoints("points/Women", "womenPoints");
+    };
   </script>
 </body>
 </html>
