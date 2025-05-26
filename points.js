@@ -1,16 +1,32 @@
 const db = firebase.database();
-const table = document.getElementById("pointsTable");
 
-function loadPoints() {
-  db.ref("points").on("value", snapshot => {
+function populatePoints(refPath, tableId) {
+  db.ref(refPath).on("value", snapshot => {
     const data = snapshot.val();
-    const keys = Object.keys(data || {});
-    const rows = keys.map(team => {
+    const tbody = document.getElementById(tableId).querySelector("tbody");
+    tbody.innerHTML = "";
+
+    if (!data) {
+      tbody.innerHTML = "<tr><td colspan='5'>No data</td></tr>";
+      return;
+    }
+
+    Object.keys(data).forEach(team => {
       const p = data[team];
-      return `<tr><td>${team}</td><td>${p.played}</td><td>${p.won}</td><td>${p.lost}</td><td>${p.points}</td></tr>`;
-    }).join("");
-    table.innerHTML = `<tr><th>Team</th><th>Played</th><th>Won</th><th>Lost</th><th>Points</th></tr>` + rows;
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${team}</td>
+        <td>${p.played ?? 0}</td>
+        <td>${p.won ?? 0}</td>
+        <td>${p.lost ?? 0}</td>
+        <td>${p.points ?? 0}</td>
+      `;
+      tbody.appendChild(row);
+    });
   });
 }
 
-window.onload = loadPoints;
+window.onload = () => {
+  populatePoints("points/Men", "menPoints");
+  populatePoints("points/Women", "womenPoints");
+};
