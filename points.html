@@ -1,108 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>UVPL Points Table</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UVPL – Home</title>
+  <link rel="stylesheet" href="style.css">
   <style>
     body {
+      background: linear-gradient(to right, orange, white, green);
       font-family: Arial, sans-serif;
-      background-color: #fff;
-      color: #000;
       padding: 2rem;
     }
-    h1, h2 {
-      text-align: center;
-      margin-bottom: 1rem;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 3rem;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 0.75rem;
-      text-align: center;
-    }
-    th {
+    header h1 {
       background-color: #2e1065;
       color: white;
+      padding: 1rem;
+      text-align: center;
+      border-radius: 8px;
+    }
+    .button-link {
+      display: inline-block;
+      margin: 1rem;
+      padding: 1rem 2rem;
+      background-color: #2e1065;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    .live-section {
+      background: #fff;
+      padding: 1rem;
+      margin-top: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 0 5px #ccc;
+    }
+    iframe {
+      width: 100%;
+      height: 300px;
+      border: none;
+      border-radius: 8px;
+    }
+    .score-box {
+      font-size: 1.2rem;
+      margin-top: 1rem;
+      text-align: center;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <h1>🏆 UVPL Points Table</h1>
+  <header>
+    <h1>🏐 United Creation Volleyball Premier League (UVPL)</h1>
+  </header>
 
-  <section>
-    <h2>Men's Teams</h2>
-    <table id="menPoints">
-      <thead>
-        <tr>
-          <th>Team</th>
-          <th>Played</th>
-          <th>Won</th>
-          <th>Lost</th>
-          <th>Points</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+  <section class="buttons" style="text-align:center;">
+    <a class="button-link" href="schedule.html">📅 Match Schedule</a>
+    <a class="button-link" href="point.html">📊 Points Table</a>
+    <a class="button-link" href="rules.html">📘 Rules</a>
+    <a class="button-link" href="gallery.html">🖼️ Gallery</a>
+    <a class="button-link" href="login.html">🔐 Host/Referee Login</a>
   </section>
 
-  <section>
-    <h2>Women's Teams</h2>
-    <table id="womenPoints">
-      <thead>
-        <tr>
-          <th>Team</th>
-          <th>Played</th>
-          <th>Won</th>
-          <th>Lost</th>
-          <th>Points</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+  <section id="liveMatch" class="live-section" style="display:none;">
+    <h2 style="text-align:center;">🔴 Live Match</h2>
+    <div id="liveVideo"></div>
+    <div id="liveScore" class="score-box"></div>
   </section>
 
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
-
   <script>
     const db = firebase.database();
+    const today = new Date().toISOString().split('T')[0];
+    const times = ["18:00", "18:45", "19:30", "20:15"];
 
-    function loadPoints(gender, tableId) {
-      db.ref(`points/${gender}`).once("value").then(snapshot => {
-        const data = snapshot.val();
-        const tbody = document.querySelector(`#${tableId} tbody`);
-        tbody.innerHTML = "";
+    db.ref(`schedule/${today}`).once("value").then(snapshot => {
+      const data = snapshot.val();
+      if (!data) return;
+      for (let time of times) {
+        if (data[time]) {
+          const match = data[time];
+          const section = document.getElementById("liveMatch");
+          const videoDiv = document.getElementById("liveVideo");
+          const scoreDiv = document.getElementById("liveScore");
+          section.style.display = "block";
+          
+          if (match.youtube) {
+            const videoId = match.youtube.split("v=")[1]?.split("&")[0];
+            videoDiv.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" allowfullscreen></iframe>`;
+          }
 
-        if (!data) {
-          tbody.innerHTML = `<tr><td colspan="5">No data available</td></tr>`;
-          return;
+          const s1 = match.team1Score ?? "-";
+          const s2 = match.team2Score ?? "-";
+          scoreDiv.innerHTML = `${match.team1} ${s1} : ${s2} ${match.team2}`;
+          break;
         }
-
-        Object.keys(data).forEach(teamName => {
-          const team = data[teamName];
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${team.name || teamName}</td>
-            <td>${team.played || 0}</td>
-            <td>${team.won || 0}</td>
-            <td>${team.lost || 0}</td>
-            <td>${team.points || 0}</td>
-          `;
-          tbody.appendChild(row);
-        });
-      });
-    }
-
-    loadPoints("Men", "menPoints");
-    loadPoints("Women", "womenPoints");
+      }
+    });
   </script>
 </body>
 </html>
