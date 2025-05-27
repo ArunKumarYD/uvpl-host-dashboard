@@ -1,4 +1,3 @@
-<!-- Save this as host.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,16 +6,25 @@
   <title>Host Dashboard – UVPL</title>
   <link rel="stylesheet" href="style.css" />
   <style>
-    main {
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+    }
+    header h1 {
+      background-color: #2e1065;
+      color: white;
       padding: 1rem;
+      border-radius: 8px;
+      text-align: center;
     }
-    button, select, input, textarea {
-      padding: 0.5rem;
-      margin: 0.25rem;
-    }
-    .section {
-      display: none;
-      margin-top: 1rem;
+    button {
+      margin: 0.5rem 0.5rem 1rem 0;
+      padding: 0.5rem 1rem;
+      background-color: #2e1065;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
     }
     table {
       width: 100%;
@@ -32,47 +40,30 @@
       background-color: #2e1065;
       color: white;
     }
+    .section {
+      display: none;
+      margin-top: 2rem;
+    }
+    input, select {
+      padding: 0.4rem;
+      margin: 0.3rem 0;
+    }
   </style>
 </head>
-<body class="indian-theme">
+<body>
   <header>
     <h1>🏐 Host Dashboard – UVPL</h1>
-    <nav>
-      <a href="index.html">🏠 Home</a>
-      <a href="point.html">📊 Points</a>
-      <a href="schedule.html">📅 Schedule</a>
-      <a href="rules.html">📘 Rules</a>
-    </nav>
   </header>
 
   <main>
-   <main>
-  <!-- Button Menu -->
-  <div class="mb-4">
-    <button onclick="showSection('playerManagerSection')" class="bg-purple-700 text-white px-3 py-1 rounded">👥 Player Manager</button>
-    <button onclick="showSection('matchSchedulerSection')" class="bg-purple-700 text-white px-3 py-1 rounded">📅 Match Scheduler</button>
-    <button onclick="showSection('declareWinnerSection')" class="bg-purple-700 text-white px-3 py-1 rounded">🏆 Declare Winner</button>
-    <button onclick="showSection('rulesEditorSection')" class="bg-purple-700 text-white px-3 py-1 rounded">📘 Rules Editor</button>
-  </div>
+    <div>
+      <button onclick="showSection('playerManagerSection')">👥 Player Manager</button>
+      <button onclick="showSection('matchSchedulerSection')">📅 Match Scheduler</button>
+      <button onclick="showSection('declareWinnerSection')">🏆 Declare Winner</button>
+      <button onclick="showSection('rulesEditorSection')">📘 Rules Editor</button>
+    </div>
 
-  <!-- Sections -->
-  <div id="playerManagerSection" class="section" style="display:none;">
-    <!-- your player manager code here -->
-  </div>
-
-  <div id="matchSchedulerSection" class="section" style="display:none;">
-    <!-- your match scheduler code here -->
-  </div>
-
-  <div id="declareWinnerSection" class="section" style="display:none;">
-    <!-- your declare winner code here -->
-  </div>
-
-  <div id="rulesEditorSection" class="section" style="display:none;">
-    <!-- your rules editor code here -->
-  </div>
-</main>
-    <!-- PLAYER MANAGER -->
+    <!-- Player Manager -->
     <div id="playerManagerSection" class="section">
       <h2>👥 Player Manager</h2>
       Gender:
@@ -82,220 +73,202 @@
       </select>
       Team:
       <select id="pmTeamSelect"></select>
-      <button onclick="loadPlayers()">Load Players</button>
-      <table>
+      <button onclick="loadPlayers()">Load</button>
+
+      <table id="playersTable">
         <thead>
           <tr><th>Name</th><th>Matches</th><th>Points</th><th>Role</th><th>Action</th></tr>
         </thead>
-        <tbody id="playersTableBody"></tbody>
+        <tbody></tbody>
       </table>
+
       <button onclick="addPlayerRow()">+ Add Player</button>
       <button onclick="savePlayers()">💾 Save All</button>
     </div>
 
-    <!-- MATCH SCHEDULER -->
+    <!-- Match Scheduler -->
     <div id="matchSchedulerSection" class="section">
-      <h2>📅 Match Scheduler</h2>
-      Gender:
-      <select id="msGender">
-        <option value="Men">Men</option>
-        <option value="Women">Women</option>
-      </select><br/>
-      Team A: <select id="teamA"></select>
-      VS
-      Team B: <select id="teamB"></select><br/>
-      Date: <input type="date" id="matchDate" />
-      Time: <input type="time" id="matchTime" />
-      <button onclick="scheduleMatch()">➕ Add Match</button>
+      <h2>📅 Schedule a Match</h2>
+      <label>Date: <input id="matchDate" type="date" /></label><br/>
+      <label>Time:
+        <select id="matchTime">
+          <option>18:00</option><option>18:45</option><option>19:30</option><option>20:15</option>
+        </select>
+      </label><br/>
+      <label>Category:
+        <select id="matchCategory">
+          <option>Men</option>
+          <option>Women</option>
+        </select>
+      </label><br/>
+      <label>Team 1: <input id="team1" /></label><br/>
+      <label>Team 2: <input id="team2" /></label><br/>
+      <button onclick="saveMatch()">➕ Save Match</button>
     </div>
 
-    <!-- DECLARE WINNER -->
+    <!-- Declare Winner -->
     <div id="declareWinnerSection" class="section">
       <h2>🏆 Declare Match Winner</h2>
-      <select id="matchSelect"></select><br/>
-      Winner: <select id="winnerSelect"></select>
-      <button onclick="declareWinner()">✅ Declare</button>
+      <label>Select Match Date:
+        <input type="date" id="winnerDate" onchange="loadMatchList()" />
+      </label>
+      <label>Time:
+        <select id="matchSelect"></select>
+      </label><br/>
+      <label>Winner:
+        <select id="winnerSelect"></select>
+      </label><br/>
+      <button onclick="declareWinner()">✅ Declare Winner</button>
     </div>
 
-    <!-- RULES EDITOR -->
+    <!-- Rules Editor -->
     <div id="rulesEditorSection" class="section">
-      <h2>📘 Rules Editor</h2>
-      <textarea id="rulesText" rows="10" cols="60" placeholder="Enter rules here..."></textarea><br/>
+      <h2>📘 Edit Tournament Rules</h2>
+      <textarea id="rulesText" rows="10" cols="60"></textarea><br/>
       <button onclick="saveRules()">💾 Save Rules</button>
     </div>
   </main>
 
-  <footer>&copy; 2025 UVPL. All rights reserved.</footer>
+  <footer style="margin-top: 3rem; text-align: center;">
+    © 2025 UVPL. All rights reserved.
+  </footer>
 
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
+
   <script>
     const db = firebase.database();
+
+    function showSection(id) {
+      document.querySelectorAll(".section").forEach(sec => sec.style.display = "none");
+      document.getElementById(id).style.display = "block";
+    }
+
     const teams = {
       Men: ['United Challengers', 'UC Twistter', 'Azraq Astronuts', 'IJC Ninjas'],
       Women: ['United Challengers', 'UC Twistter', 'Azraq Astronuts', 'IJC Ninjas']
     };
 
-    function showSection(id) {
-      document.querySelectorAll(".section").forEach(s => s.style.display = "none");
-      document.getElementById(id).style.display = "block";
-      if (id === "playerManagerSection") setupPlayerManager();
-      if (id === "declareWinnerSection") loadMatchList();
-      if (id === "rulesEditorSection") loadRules();
-      if (id === "matchSchedulerSection") loadTeamsForScheduler();
-    }
-
-    // PLAYER MANAGER
-    function setupPlayerManager() {
+    function populateTeamSelect() {
       const gender = document.getElementById("pmGenderSelect").value;
       const teamSelect = document.getElementById("pmTeamSelect");
       teamSelect.innerHTML = '';
       teams[gender].forEach(team => {
-        const opt = document.createElement("option");
-        opt.value = team;
-        opt.textContent = team;
-        teamSelect.appendChild(opt);
+        const option = document.createElement("option");
+        option.value = team;
+        option.textContent = team;
+        teamSelect.appendChild(option);
       });
     }
 
-    document.getElementById("pmGenderSelect").addEventListener("change", setupPlayerManager);
+    document.getElementById("pmGenderSelect").addEventListener("change", populateTeamSelect);
+    window.onload = () => {
+      populateTeamSelect();
+      showSection("playerManagerSection");
+    };
 
-    function addPlayerRow(player = { name: '', matches: '', points: '', role: '' }) {
+    function addPlayerRow(player = { name: '', matches: 0, points: 0, role: '' }) {
+      const tbody = document.querySelector("#playersTable tbody");
       const row = document.createElement("tr");
       row.innerHTML = `
-        <td><input value="${player.name}" /></td>
-        <td><input type="number" value="${player.matches}" /></td>
-        <td><input type="number" value="${player.points}" /></td>
-        <td><input value="${player.role}" /></td>
-        <td><button onclick="this.closest('tr').remove()">❌</button></td>
+        <td><input value="${player.name}"></td>
+        <td><input type="number" value="${player.matches}"></td>
+        <td><input type="number" value="${player.points}"></td>
+        <td><input value="${player.role}"></td>
+        <td><button onclick="this.closest('tr').remove()">🗑️ Delete</button></td>
       `;
-      document.getElementById("playersTableBody").appendChild(row);
+      tbody.appendChild(row);
     }
 
     function loadPlayers() {
       const gender = document.getElementById("pmGenderSelect").value;
       const team = document.getElementById("pmTeamSelect").value;
-      db.ref(`players/${gender}/${team}`).once("value", snap => {
-        document.getElementById("playersTableBody").innerHTML = "";
-        const data = snap.val();
-        if (data) Object.values(data).forEach(addPlayerRow);
+      const path = `players/${gender}/${team}`;
+      db.ref(path).once('value').then(snapshot => {
+        const tbody = document.querySelector("#playersTable tbody");
+        tbody.innerHTML = '';
+        const data = snapshot.val();
+        if (data) Object.values(data).forEach(p => addPlayerRow(p));
       });
     }
 
     function savePlayers() {
       const gender = document.getElementById("pmGenderSelect").value;
       const team = document.getElementById("pmTeamSelect").value;
-      const rows = document.querySelectorAll("#playersTableBody tr");
-      const data = {};
+      const path = `players/${gender}/${team}`;
+      const rows = document.querySelectorAll("#playersTable tbody tr");
+      const players = {};
       rows.forEach((row, i) => {
         const inputs = row.querySelectorAll("input");
-        data[`player${i}`] = {
+        players[`player${i}`] = {
           name: inputs[0].value,
-          matches: +inputs[1].value || 0,
-          points: +inputs[2].value || 0,
+          matches: parseInt(inputs[1].value) || 0,
+          points: parseInt(inputs[2].value) || 0,
           role: inputs[3].value
         };
       });
-      db.ref(`players/${gender}/${team}`).set(data).then(() => alert("✅ Players saved!"));
+      db.ref(path).set(players).then(() => alert("✅ Players saved!"));
     }
 
-    // MATCH SCHEDULER
-    function loadTeamsForScheduler() {
-      const gender = document.getElementById("msGender").value;
-      ['teamA', 'teamB'].forEach(id => {
-        const sel = document.getElementById(id);
-        sel.innerHTML = '';
-        teams[gender].forEach(team => {
-          const opt = document.createElement("option");
-          opt.value = team;
-          opt.textContent = team;
-          sel.appendChild(opt);
-        });
-      });
-    }
-    document.getElementById("msGender").addEventListener("change", loadTeamsForScheduler);
-
-    function scheduleMatch() {
-      const gender = document.getElementById("msGender").value;
-      const teamA = document.getElementById("teamA").value;
-      const teamB = document.getElementById("teamB").value;
+    function saveMatch() {
       const date = document.getElementById("matchDate").value;
       const time = document.getElementById("matchTime").value;
-      const key = `${date}_${time.replace(':', '-')}_${teamA}_vs_${teamB}`;
-
-      const matchData = {
-        gender, teamA, teamB, date, time, status: 'Scheduled', winner: ''
-      };
-
-      db.ref(`schedule/${key}`).set(matchData).then(() => alert("✅ Match scheduled!"));
+      const category = document.getElementById("matchCategory").value;
+      const team1 = document.getElementById("team1").value;
+      const team2 = document.getElementById("team2").value;
+      if (!date || !time || !team1 || !team2) return alert("Fill all fields!");
+      const path = `schedule/${date}/${time}`;
+      db.ref(path).set({ category, team1, team2 }).then(() => alert("✅ Match scheduled!"));
     }
 
-    // DECLARE WINNER
     function loadMatchList() {
+      const date = document.getElementById("winnerDate").value;
       const matchSelect = document.getElementById("matchSelect");
       const winnerSelect = document.getElementById("winnerSelect");
       matchSelect.innerHTML = '';
       winnerSelect.innerHTML = '';
+      if (!date) return;
 
-      db.ref("schedule").once("value", snap => {
-        snap.forEach(child => {
-          const data = child.val();
-          if (data.status === "Scheduled") {
-            const opt = document.createElement("option");
-            opt.value = child.key;
-            opt.textContent = `${data.date} ${data.time} - ${data.teamA} vs ${data.teamB}`;
-            matchSelect.appendChild(opt);
-          }
+      db.ref(`schedule/${date}`).once("value").then(snapshot => {
+        const data = snapshot.val();
+        if (!data) return;
+        Object.keys(data).forEach(time => {
+          const match = data[time];
+          const opt = document.createElement("option");
+          opt.value = time;
+          opt.text = `${time} - ${match.team1} vs ${match.team2}`;
+          matchSelect.appendChild(opt);
         });
-      });
-
-      teams.Men.concat(teams.Women).forEach(team => {
-        const opt = document.createElement("option");
-        opt.value = team;
-        opt.textContent = team;
-        winnerSelect.appendChild(opt);
+        matchSelect.onchange = () => {
+          const match = data[matchSelect.value];
+          winnerSelect.innerHTML = `
+            <option value="${match.team1}">${match.team1}</option>
+            <option value="${match.team2}">${match.team2}</option>
+          `;
+        };
+        matchSelect.dispatchEvent(new Event("change"));
       });
     }
 
     function declareWinner() {
-     function declareWinner() {
-  const matchKey = document.getElementById("matchSelect").value;
-  const winner = document.getElementById("winnerSelect").value;
-  if (!matchKey || !winner) return alert("Select both match and winner");
-
-  db.ref(`schedule/${matchKey}`).once("value").then(snapshot => {
-    const match = snapshot.val();
-    if (!match) return alert("Match not found!");
-
-    const loser = match.teamA === winner ? match.teamB : match.teamA;
-
-    // Update match status
-    db.ref(`schedule/${matchKey}`).update({
-      status: "Completed",
-      winner
-    });
-
-    const gender = match.gender;
-    const updates = {};
-
-    updates[`points/${gender}/${winner}/played`] = firebase.database.ServerValue.increment(1);
-    updates[`points/${gender}/${winner}/won`] = firebase.database.ServerValue.increment(1);
-    updates[`points/${gender}/${winner}/points`] = firebase.database.ServerValue.increment(2);
-
-    updates[`points/${gender}/${loser}/played`] = firebase.database.ServerValue.increment(1);
-    updates[`points/${gender}/${loser}/lost`] = firebase.database.ServerValue.increment(1);
-
-    db.ref().update(updates).then(() => {
-      alert("🏆 Winner declared & points updated!");
-      loadMatchList();
-    });
-  });
-}
-    // RULES
-    function loadRules() {
-      db.ref("rules").once("value", snap => {
-        document.getElementById("rulesText").value = snap.val() || "";
+      const date = document.getElementById("winnerDate").value;
+      const time = document.getElementById("matchSelect").value;
+      const winner = document.getElementById("winnerSelect").value;
+      const path = `schedule/${date}/${time}`;
+      db.ref(path).once("value").then(snapshot => {
+        const match = snapshot.val();
+        if (!match) return alert("Match not found");
+        const loser = (match.team1 === winner) ? match.team2 : match.team1;
+        const updates = {};
+        updates[`schedule/${date}/${time}/status`] = "Completed";
+        updates[`schedule/${date}/${time}/winner`] = winner;
+        updates[`points/${match.category}/${winner}/played`] = firebase.database.ServerValue.increment(1);
+        updates[`points/${match.category}/${winner}/won`] = firebase.database.ServerValue.increment(1);
+        updates[`points/${match.category}/${winner}/points`] = firebase.database.ServerValue.increment(2);
+        updates[`points/${match.category}/${loser}/played`] = firebase.database.ServerValue.increment(1);
+        updates[`points/${match.category}/${loser}/lost`] = firebase.database.ServerValue.increment(1);
+        db.ref().update(updates).then(() => alert("🏆 Winner declared & points updated!"));
       });
     }
 
@@ -303,9 +276,6 @@
       const text = document.getElementById("rulesText").value;
       db.ref("rules").set(text).then(() => alert("📘 Rules saved!"));
     }
-
-    // Load player manager by default
-    window.onload = () => showSection("playerManagerSection");
   </script>
 </body>
 </html>
