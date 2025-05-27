@@ -7,53 +7,56 @@
   <link rel="stylesheet" href="style.css" />
   <style>
     body {
+      background: linear-gradient(to right, orange, white, green);
       font-family: Arial, sans-serif;
-      background-color: white;
-      color: black;
+      color: #000;
+      margin: 0;
       padding: 2rem;
     }
-    .live-banner {
-      background-color: red;
-      color: white;
-      font-weight: bold;
-      padding: 1rem;
+    header {
       text-align: center;
-      font-size: 1.5rem;
-      border-radius: 0.5rem;
       margin-bottom: 2rem;
     }
-    .section {
-      margin-bottom: 2rem;
-    }
-    a.button {
-      display: inline-block;
-      margin-right: 1rem;
-      padding: 0.75rem 1.5rem;
+    header h1 {
+      font-size: 2rem;
       background-color: #2e1065;
       color: white;
-      border-radius: 5px;
-      text-decoration: none;
+      padding: 1rem;
+      border-radius: 8px;
     }
-    h1 {
-      font-size: 2rem;
-      margin-bottom: 1rem;
-      text-align: center;
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    .button-link {
+      background-color: #2e1065;
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 1rem;
+      transition: 0.2s ease;
+    }
+    .button-link:hover {
+      background-color: #4b2c91;
     }
   </style>
 </head>
 <body>
-  <h1>🏐 United Creation Volleyball Premier League (UVPL)</h1>
+  <header>
+    <h1>🏐 United Creation Volleyball Premier League (UVPL)</h1>
+  </header>
 
-  <div id="liveMatch" class="live-banner" style="display: none;"></div>
-
-  <div class="section">
-    <a class="button" href="schedule.html">📅 Match Schedule</a>
-    <a class="button" href="point.html">📊 Points Table</a>
-    <a class="button" href="rules.html">📘 Rules</a>
-    <a class="button" href="gallery.html">🖼️ Gallery</a>
-    <a class="button" href="login.html">🔐 Host/Referee Login</a>
-  </div>
-
+  <section class="buttons">
+    <a class="button-link" href="schedule.html">📅 Match Schedule</a>
+    <a class="button-link" href="point.html">📊 Points Table</a>
+    <a class="button-link" href="rules.html">📘 Rules</a>
+    <a class="button-link" href="gallery.html">🖼️ Gallery</a>
+    <a class="button-link" href="login.html">🔐 Host/Referee Login</a>
+  </section>
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
