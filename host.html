@@ -46,14 +46,32 @@
   </header>
 
   <main>
-    <!-- Dashboard Menu -->
-    <div>
-      <button onclick="showSection('playerManagerSection')">👥 Player Manager</button>
-      <button onclick="showSection('matchSchedulerSection')">📅 Match Scheduler</button>
-      <button onclick="showSection('declareWinnerSection')">🏆 Declare Winner</button>
-      <button onclick="showSection('rulesEditorSection')">📘 Rules Editor</button>
-    </div>
+   <main>
+  <!-- Button Menu -->
+  <div class="mb-4">
+    <button onclick="showSection('playerManagerSection')" class="bg-purple-700 text-white px-3 py-1 rounded">👥 Player Manager</button>
+    <button onclick="showSection('matchSchedulerSection')" class="bg-purple-700 text-white px-3 py-1 rounded">📅 Match Scheduler</button>
+    <button onclick="showSection('declareWinnerSection')" class="bg-purple-700 text-white px-3 py-1 rounded">🏆 Declare Winner</button>
+    <button onclick="showSection('rulesEditorSection')" class="bg-purple-700 text-white px-3 py-1 rounded">📘 Rules Editor</button>
+  </div>
 
+  <!-- Sections -->
+  <div id="playerManagerSection" class="section" style="display:none;">
+    <!-- your player manager code here -->
+  </div>
+
+  <div id="matchSchedulerSection" class="section" style="display:none;">
+    <!-- your match scheduler code here -->
+  </div>
+
+  <div id="declareWinnerSection" class="section" style="display:none;">
+    <!-- your declare winner code here -->
+  </div>
+
+  <div id="rulesEditorSection" class="section" style="display:none;">
+    <!-- your rules editor code here -->
+  </div>
+</main>
     <!-- PLAYER MANAGER -->
     <div id="playerManagerSection" class="section">
       <h2>👥 Player Manager</h2>
