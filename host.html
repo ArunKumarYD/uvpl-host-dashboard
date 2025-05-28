@@ -20,37 +20,19 @@
 <body>
   <h1>🏐 Host Dashboard – UVPL</h1>
   <button onclick="window.open('players.html')">🏅 View Top Players</button>
-  <button onclick="showSection('playerManager')">👥 Player Manager</button>
-  <button onclick="showSection('matchScheduler')">📅 Match Scheduler</button>
-  <button onclick="showSection('declareWinner')">🏆 Declare Winner</button>
-  <button onclick="showSection('rulesEditor')">📘 Rules Editor</button>
 
-  <div id="playerManager" class="section" style="display:none;">
-    <h2>👥 Player Manager</h2>
-    <p>Player manager section here...</p>
-  </div>
-  <div id="matchScheduler" class="section" style="display:none;">
+  <div id="matchScheduler" class="section">
     <h2>📅 Match Scheduler</h2>
-    <p>Match scheduler section here...</p>
-  </div>
-  <div id="declareWinner" class="section" style="display:none;">
-    <h2>🏆 Declare Winner</h2>
-    <p>Declare winner section here...</p>
-  </div>
-  <div id="rulesEditor" class="section" style="display:none;">
-    <h2>📘 Rules Editor</h2>
-    <p>Rules editor section here...</p>
-  </div>
-
-  <!-- Match Control -->
-  <div class="section">
-    <h2>📺 Live Match Control</h2>
-    <label>Date: <input type="date" id="matchDate"></label><br/>
+    <label>Gender: <select id="schedGender"><option>Men</option><option>Women</option></select></label><br/>
+    <label>Team 1: <select id="schedTeam1"></select></label>
+    <label>Team 2: <select id="schedTeam2"></select></label><br/>
+    <label>Date: <input type="date" id="matchDate"></label>
     <label>Time:
       <select id="matchTime">
         <option>18:00</option><option>18:45</option><option>19:30</option><option>20:15</option>
       </select>
     </label><br/>
+    <button onclick="scheduleMatch()">📅 Save Match</button>
     <button onclick="startMatch()">🚀 Start Match</button>
     <div id="liveControls" style="display:none;" class="live-box">
       <h3>🎯 Live Match Controls</h3>
@@ -61,19 +43,118 @@
     </div>
   </div>
 
+  <div id="playerManager" class="section">
+    <h2>👥 Player Manager</h2>
+    <label>Gender: <select id="pmGenderSelect"><option value="Men">Men</option><option value="Women">Women</option></select></label>
+    <label>Team: <select id="pmTeamSelect"></select></label>
+    <button onclick="loadPlayers()">Load Players</button>
+    <table id="playersTable">
+      <thead><tr><th>Name</th><th>Matches</th><th>Points</th><th>Role</th><th>Action</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <button onclick="addPlayerRow()">+ Add Player</button>
+    <button onclick="savePlayers()">💾 Save All</button>
+  </div>
+
+  <div id="rulesEditor" class="section">
+    <h2>📘 Rules Editor</h2>
+    <textarea id="rulesText" rows="8" style="width:100%;"></textarea><br/>
+    <button onclick="saveRules()">💾 Save Rules</button>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
   <script>
     const db = firebase.database();
     const teams = ["United Challengers", "UC Twistter", "Azraq Astronuts", "IJC Ninjas"];
-    let matchData = {}, team1Key = '', team2Key = '', gender = '';
 
-    function showSection(id) {
-      ["playerManager", "matchScheduler", "declareWinner", "rulesEditor"].forEach(sec => {
-        document.getElementById(sec).style.display = (sec === id) ? 'block' : 'none';
+    document.getElementById("schedGender").addEventListener("change", () => {
+      ["schedTeam1", "schedTeam2"].forEach(id => {
+        const s = document.getElementById(id);
+        s.innerHTML = "";
+        teams.forEach(t => {
+          const o = document.createElement("option");
+          o.value = t;
+          o.textContent = t;
+          s.appendChild(o);
+        });
+      });
+    });
+
+    document.getElementById("pmGenderSelect").addEventListener("change", () => {
+      const gender = document.getElementById("pmGenderSelect").value;
+      const select = document.getElementById("pmTeamSelect");
+      select.innerHTML = "";
+      teams.forEach(team => {
+        const opt = document.createElement("option");
+        opt.value = team;
+        opt.textContent = team;
+        select.appendChild(opt);
+      });
+    });
+
+    function addPlayerRow(p = {}) {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><input value="${p.name || ''}"></td>
+        <td><input type="number" value="${p.matches || 0}"></td>
+        <td><input type="number" value="${p.points || 0}"></td>
+        <td><input value="${p.role || ''}"></td>
+        <td><button onclick="this.closest('tr').remove()">Delete</button></td>
+      `;
+      document.querySelector("#playersTable tbody").appendChild(row);
+    }
+
+    function loadPlayers() {
+      const g = document.getElementById("pmGenderSelect").value;
+      const t = document.getElementById("pmTeamSelect").value;
+      db.ref(`players/${g}/${t}`).once("value").then(snap => {
+        const data = snap.val() || {};
+        const tbody = document.querySelector("#playersTable tbody");
+        tbody.innerHTML = "";
+        Object.values(data).forEach(p => addPlayerRow(p));
       });
     }
+
+    function savePlayers() {
+      const gender = document.getElementById("pmGenderSelect").value;
+      const team = document.getElementById("pmTeamSelect").value;
+      const rows = document.querySelectorAll("#playersTable tbody tr");
+      const data = {};
+      rows.forEach((r, i) => {
+        const inputs = r.querySelectorAll("input");
+        data[`player${i}`] = {
+          name: inputs[0].value,
+          matches: +inputs[1].value,
+          points: +inputs[2].value,
+          role: inputs[3].value
+        };
+      });
+      db.ref(`players/${gender}/${team}`).set(data).then(() => alert("✅ Players saved"));
+    }
+
+    function saveRules() {
+      const r = document.getElementById("rulesText").value;
+      db.ref("rules").set(r).then(() => alert("✅ Rules saved"));
+    }
+
+    db.ref("rules").once("value").then(s => {
+      document.getElementById("rulesText").value = s.val() || "";
+    });
+
+    function scheduleMatch() {
+      const g = document.getElementById("schedGender").value;
+      const t1 = document.getElementById("schedTeam1").value;
+      const t2 = document.getElementById("schedTeam2").value;
+      const d = document.getElementById("matchDate").value;
+      const ti = document.getElementById("matchTime").value;
+      if (!t1 || !t2 || !d || !ti) return alert("Fill all fields");
+      db.ref(`schedule/${d}/${ti}`).set({ team1: t1, team2: t2, gender: g, status: "Scheduled" })
+        .then(() => alert("✅ Match scheduled"));
+    }
+
+    let matchData = {}, team1Key = '', team2Key = '', gender = '';
 
     function startMatch() {
       const date = document.getElementById("matchDate").value;
@@ -93,6 +174,7 @@
         document.getElementById("liveTeams").innerHTML = `
           <p><span class='team-name' onclick="addTeamScore('${team1Key}')">${team1Key}</span> vs 
           <span class='team-name' onclick="addTeamScore('${team2Key}')">${team2Key}</span></p>
+          <iframe width="300" height="200" src="https://www.youtube.com/embed/live_stream?channel=UCnkKh0FHDKfUGv1ehq7NH5w" title="Live Match" frameborder="0" allowfullscreen></iframe>
         `;
         document.getElementById("winnerSelect").innerHTML = `
           <option value="${team1Key}">${team1Key}</option>
