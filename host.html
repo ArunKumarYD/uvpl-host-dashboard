@@ -93,9 +93,70 @@
       });
     }
 
+    function addPlayerRow(p = {}) {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><input value="${p.name || ''}"></td>
+        <td><input type="number" value="${p.matches || 0}"></td>
+        <td><input type="number" value="${p.points || 0}"></td>
+        <td><input value="${p.role || ''}"></td>
+        <td><button onclick="this.closest('tr').remove()">Delete</button></td>
+      `;
+      document.querySelector("#playersTable tbody").appendChild(row);
+    }
+
+    function loadPlayers() {
+      const g = document.getElementById("pmGenderSelect").value;
+      const t = document.getElementById("pmTeamSelect").value;
+      db.ref(`players/${g}/${t}`).once("value").then(snap => {
+        const data = snap.val() || {};
+        const tbody = document.querySelector("#playersTable tbody");
+        tbody.innerHTML = "";
+        Object.values(data).forEach(p => addPlayerRow(p));
+      });
+    }
+
+    function savePlayers() {
+      const gender = document.getElementById("pmGenderSelect").value;
+      const team = document.getElementById("pmTeamSelect").value;
+      const rows = document.querySelectorAll("#playersTable tbody tr");
+      const data = {};
+      rows.forEach((r, i) => {
+        const inputs = r.querySelectorAll("input");
+        data[`player${i}`] = {
+          name: inputs[0].value,
+          matches: +inputs[1].value,
+          points: +inputs[2].value,
+          role: inputs[3].value
+        };
+      });
+      db.ref(`players/${gender}/${team}`).set(data).then(() => alert("✅ Players saved"));
+    }
+
+    function saveRules() {
+      const r = document.getElementById("rulesText").value;
+      db.ref("rules").set(r).then(() => alert("✅ Rules saved"));
+    }
+
+    function scheduleMatch() {
+      const g = document.getElementById("schedGender").value;
+      const t1 = document.getElementById("schedTeam1").value;
+      const t2 = document.getElementById("schedTeam2").value;
+      const d = document.getElementById("matchDate").value;
+      const ti = document.getElementById("matchTime").value;
+      if (!t1 || !t2 || !d || !ti) return alert("Fill all fields");
+      db.ref(`schedule/${d}/${ti}`).set({ team1: t1, team2: t2, gender: g, status: "Scheduled" })
+        .then(() => alert("✅ Match scheduled"));
+    }
+
     window.onload = () => {
       populateSchedulerTeams();
       populatePlayerTeams();
+
+      // Load rules
+      db.ref("rules").once("value").then(snap => {
+        document.getElementById("rulesText").value = snap.val() || "";
+      });
     };
   </script>
 </body>
