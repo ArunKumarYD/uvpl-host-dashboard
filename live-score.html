@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Match – UVPL</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { font-family: Arial, sans-serif; padding: 2rem; }
+    h1, h2 { color: #2e1065; }
+    .team, .player-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 1rem; }
+    .team button, .player button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      background: #f0f0f0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .team button:hover, .player button:hover {
+      background: #d9f99d;
+    }
+    iframe {
+      width: 100%;
+      height: 300px;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔴 Live Match Control – UVPL</h1>
+  <div id="matchInfo"></div>
+
+  <h2>🎯 Team Score</h2>
+  <div class="team" id="teamButtons"></div>
+
+  <h2>👥 Players</h2>
+  <div class="player-grid" id="playerButtons"></div>
+
+  <h2>🏁 Declare Winner</h2>
+  <select id="winnerTeam"></select>
+  <button onclick="declareWinner()">🏆 Declare</button>
+
+  <h2>🔴 YouTube Stream</h2>
+  <iframe src="https://www.youtube.com/embed/live_stream?channel=UCyZYHc1fNmNMP3eU5YSL1AQ" frameborder="0" allowfullscreen></iframe>
+
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script>
+    const db = firebase.database();
+    const params = new URLSearchParams(window.location.search);
+    const gender = params.get('gender');
+    const team1 = params.get('team1');
+    const team2 = params.get('team2');
+    const date = params.get('date');
+    const time = params.get('time');
+
+    document.getElementById("matchInfo").innerHTML = `<h2>${gender} Match: ${team1} 🆚 ${team2}</h2><p>${date} at ${time}</p>`;
+
+    const teamButtons = document.getElementById("teamButtons");
+    [team1, team2].forEach(team => {
+      const btn = document.createElement("button");
+      btn.textContent = team;
+      btn.onclick = () => {
+        db.ref(`points/${gender}/${team}/points`).transaction(p => (p || 0) + 1);
+      };
+      teamButtons.appendChild(btn);
+      document.getElementById("winnerTeam").innerHTML += `<option value="${team}">${team}</option>`;
+    });
+
+    const playerGrid = document.getElementById("playerButtons");
+    [team1, team2].forEach(team => {
+      db.ref(`players/${gender}/${team}`).once("value", snap => {
+        const players = snap.val();
+        Object.keys(players || {}).forEach(key => {
+          const p = players[key];
+          const btn = document.createElement("button");
+          btn.textContent = p.name;
+          btn.onclick = () => {
+            db.ref(`players/${gender}/${team}/${key}/points`).transaction(pt => (pt || 0) + 1);
+          };
+          playerGrid.appendChild(btn);
+        });
+      });
+    });
+
+    function declareWinner() {
+      const winner = document.getElementById("winnerTeam").value;
+      const loser = winner === team1 ? team2 : team1;
+      db.ref(`points/${gender}/${winner}`).update({ won: firebase.database.ServerValue.increment(1), played: firebase.database.ServerValue.increment(1), points: firebase.database.ServerValue.increment(2) });
+      db.ref(`points/${gender}/${loser}`).update({ lost: firebase.database.ServerValue.increment(1), played: firebase.database.ServerValue.increment(1) });
+      db.ref(`schedule/${date}/${time}/status`).set("Completed");
+      alert("✅ Winner Updated & Match Closed");
+    }
+  </script>
+</body>
+</html>
