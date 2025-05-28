@@ -50,7 +50,8 @@
   </div>
 
   <h2>🏁 Declare Winner</h2>
-  <select id="winnerTeam"></select>
+<label>Referee Name: <input type="text" id="refereeName" placeholder="Enter referee name" /></label><br/>
+<select id="winnerTeam"></select>
   <button onclick="declareWinner()">🏆 Declare</button>
 
   <h2>🔴 YouTube Stream</h2>
@@ -74,8 +75,22 @@
     document.getElementById("team2Label").innerText = team2;
 
     const teamButtons = document.getElementById("teamButtons");
-    [team1, team2].forEach(team => {
-      const btn = document.createElement("button");
+[team1, team2].forEach(team => {
+  const btn = document.createElement("button");
+  const span = document.createElement("span");
+  span.id = `score-${team}`;
+  span.textContent = " (0 pts)";
+  btn.appendChild(document.createTextNode(team));
+  btn.appendChild(span);
+  btn.onclick = () => {
+    db.ref(`points/${gender}/${team}/points`).transaction(p => (p || 0) + 1);
+  };
+  db.ref(`points/${gender}/${team}/points`).on("value", snap => {
+    span.textContent = ` (${snap.val() || 0} pts)`;
+  });
+  teamButtons.appendChild(btn);
+  document.getElementById("winnerTeam").innerHTML += `<option value="${team}">${team}</option>`;
+});
       btn.textContent = team;
       btn.onclick = () => {
         db.ref(`points/${gender}/${team}/points`).transaction(p => (p || 0) + 1);
@@ -90,7 +105,14 @@
       Object.keys(players || {}).forEach(key => {
         const p = players[key];
         const btn = document.createElement("button");
-        btn.textContent = p.name;
+        const nameSpan = document.createElement("span");
+        nameSpan.id = `score-${key}`;
+        nameSpan.textContent = ` (${p.points || 0} pts)`;
+        btn.textContent = p.name + ' ';
+        btn.appendChild(nameSpan);
+        db.ref(`players/${gender}/${team1}/${key}/points`).on("value", snap => {
+          nameSpan.textContent = ` (${snap.val() || 0} pts)`;
+        });
         btn.onclick = () => {
           db.ref(`players/${gender}/${team1}/${key}/points`).transaction(pt => (pt || 0) + 1);
         };
@@ -104,7 +126,14 @@
       Object.keys(players || {}).forEach(key => {
         const p = players[key];
         const btn = document.createElement("button");
-        btn.textContent = p.name;
+        const nameSpan = document.createElement("span");
+        nameSpan.id = `score-${key}`;
+        nameSpan.textContent = ` (${p.points || 0} pts)`;
+        btn.textContent = p.name + ' ';
+        btn.appendChild(nameSpan);
+        db.ref(`players/${gender}/${team2}/${key}/points`).on("value", snap => {
+          nameSpan.textContent = ` (${snap.val() || 0} pts)`;
+        });
         btn.onclick = () => {
           db.ref(`players/${gender}/${team2}/${key}/points`).transaction(pt => (pt || 0) + 1);
         };
@@ -113,13 +142,71 @@
     });
 
     function declareWinner() {
-      const winner = document.getElementById("winnerTeam").value;
-      const loser = winner === team1 ? team2 : team1;
-      db.ref(`points/${gender}/${winner}`).update({ won: firebase.database.ServerValue.increment(1), played: firebase.database.ServerValue.increment(1), points: firebase.database.ServerValue.increment(2) });
-      db.ref(`points/${gender}/${loser}`).update({ lost: firebase.database.ServerValue.increment(1), played: firebase.database.ServerValue.increment(1) });
-      db.ref(`schedule/${date}/${time}/status`).set("Completed");
-      alert("✅ Winner Updated & Match Closed");
+  const winner = document.getElementById("winnerTeam").value;
+  const loser = winner === team1 ? team2 : team1;
+  const referee = document.getElementById("refereeName").value || "N/A";
+
+  db.ref(`points/${gender}/${winner}`).update({
+    won: firebase.database.ServerValue.increment(1),
+    played: firebase.database.ServerValue.increment(1),
+    points: firebase.database.ServerValue.increment(2)
+  });
+  db.ref(`points/${gender}/${loser}`).update({
+    lost: firebase.database.ServerValue.increment(1),
+    played: firebase.database.ServerValue.increment(1)
+  });
+  db.ref(`schedule/${date}/${time}`).update({ status: "Completed", winner, referee });
+
+  generateMatchSummary(winner, referee);
+}
     }
-  </script>
+  function generateMatchSummary(winner, referee) {
+  const summary = [];
+  summary.push(`United Volleyball Premier League - Season 5`);
+  summary.push(`Match: ${team1} vs ${team2}`);
+  summary.push(`Date: ${date} at ${time}`);
+  summary.push(`Category: ${gender}`);
+  summary.push(`Referee: ${referee}`);
+  summary.push(`Winner: ${winner}`);
+
+  let scorePromises = [];
+
+  scorePromises.push(
+    db.ref(`points/${gender}/${team1}/points`).once("value").then(snap => {
+      summary.push(`
+${team1} Score: ${snap.val() || 0}`);
+    })
+  );
+  scorePromises.push(
+    db.ref(`points/${gender}/${team2}/points`).once("value").then(snap => {
+      summary.push(`${team2} Score: ${snap.val() || 0}`);
+    })
+  );
+
+  [team1, team2].forEach(team => {
+    scorePromises.push(
+      db.ref(`players/${gender}/${team}`).once("value").then(snap => {
+        const players = snap.val();
+        summary.push(`
+${team} Players:`);
+        Object.values(players || {}).forEach(p => {
+          summary.push(`${p.name}: ${p.points || 0} pts`);
+        });
+      })
+    );
+  });
+
+  Promise.all(scorePromises).then(() => {
+    const blob = new Blob([summary.join("
+")], { type: "text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `Match_${date}_${team1}_vs_${team2}.txt`;
+    a.click();
+    alert("✅ Match summary downloaded. Closing tab.");
+    setTimeout(() => window.close(), 1500);
+  });
+}
+</script>
 </body>
 </html>
