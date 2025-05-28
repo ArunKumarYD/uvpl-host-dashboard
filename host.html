@@ -20,10 +20,31 @@
 <body>
   <h1>🏐 Host Dashboard – UVPL</h1>
   <button onclick="window.open('players.html')">🏅 View Top Players</button>
+  <button onclick="showSection('playerManager')">👥 Player Manager</button>
+  <button onclick="showSection('matchScheduler')">📅 Match Scheduler</button>
+  <button onclick="showSection('declareWinner')">🏆 Declare Winner</button>
+  <button onclick="showSection('rulesEditor')">📘 Rules Editor</button>
+
+  <div id="playerManager" class="section" style="display:none;">
+    <h2>👥 Player Manager</h2>
+    <p>Player manager section here...</p>
+  </div>
+  <div id="matchScheduler" class="section" style="display:none;">
+    <h2>📅 Match Scheduler</h2>
+    <p>Match scheduler section here...</p>
+  </div>
+  <div id="declareWinner" class="section" style="display:none;">
+    <h2>🏆 Declare Winner</h2>
+    <p>Declare winner section here...</p>
+  </div>
+  <div id="rulesEditor" class="section" style="display:none;">
+    <h2>📘 Rules Editor</h2>
+    <p>Rules editor section here...</p>
+  </div>
 
   <!-- Match Control -->
   <div class="section">
-    <h2>📅 Match Control</h2>
+    <h2>📺 Live Match Control</h2>
     <label>Date: <input type="date" id="matchDate"></label><br/>
     <label>Time:
       <select id="matchTime">
@@ -47,6 +68,12 @@
     const db = firebase.database();
     const teams = ["United Challengers", "UC Twistter", "Azraq Astronuts", "IJC Ninjas"];
     let matchData = {}, team1Key = '', team2Key = '', gender = '';
+
+    function showSection(id) {
+      ["playerManager", "matchScheduler", "declareWinner", "rulesEditor"].forEach(sec => {
+        document.getElementById(sec).style.display = (sec === id) ? 'block' : 'none';
+      });
+    }
 
     function startMatch() {
       const date = document.getElementById("matchDate").value;
@@ -72,6 +99,7 @@
           <option value="${team2Key}">${team2Key}</option>
         `;
 
+        document.getElementById("livePlayers").innerHTML = "";
         loadPlayerList(gender, team1Key);
         loadPlayerList(gender, team2Key);
       });
@@ -123,28 +151,3 @@
   </script>
 </body>
 </html>
-<script>
-function saveMatch() {
-  const date = document.getElementById("matchDate").value;
-  const time = document.getElementById("matchTime").value;
-  const category = document.getElementById("matchCategory").value;
-  const team1 = document.getElementById("team1").value.trim();
-  const team2 = document.getElementById("team2").value.trim();
-
-  if (!date || !time || !team1 || !team2) {
-    alert("⚠️ Please fill all fields.");
-    return;
-  }
-
-  const path = `schedule/${date}/${time}`;
-  const data = {
-    team1,
-    team2,
-    category
-  };
-
-  firebase.database().ref(path).set(data).then(() => {
-    alert("✅ Match scheduled successfully!");
-  });
-}
-</script>
