@@ -23,7 +23,7 @@
 
   <div id="matchScheduler" class="section">
     <h2>📅 Match Scheduler</h2>
-    <label>Gender: <select id="schedGender"><option>Men</option><option>Women</option></select></label><br/>
+    <label>Gender: <select id="schedGender" onchange="populateSchedulerTeams()"><option>Men</option><option>Women</option></select></label><br/>
     <label>Team 1: <select id="schedTeam1"></select></label>
     <label>Team 2: <select id="schedTeam2"></select></label><br/>
     <label>Date: <input type="date" id="matchDate"></label>
@@ -45,7 +45,7 @@
 
   <div id="playerManager" class="section">
     <h2>👥 Player Manager</h2>
-    <label>Gender: <select id="pmGenderSelect"><option value="Men">Men</option><option value="Women">Women</option></select></label>
+    <label>Gender: <select id="pmGenderSelect" onchange="populatePlayerTeams()"><option value="Men">Men</option><option value="Women">Women</option></select></label>
     <label>Team: <select id="pmTeamSelect"></select></label>
     <button onclick="loadPlayers()">Load Players</button>
     <table id="playersTable">
@@ -67,169 +67,36 @@
   <script src="firebase-config.js"></script>
   <script>
     const db = firebase.database();
-    const teams = ["United Challengers", "UC Twistter", "Azraq Astronuts", "IJC Ninjas"];
+    const allTeams = {
+      Men: ["United Challengers", "UC Twistter", "Azraq Astronuts", "IJC Ninjas"],
+      Women: ["United Challengers", "UC Twistter", "Azraq Astronuts", "IJC Ninjas"]
+    };
 
-    document.getElementById("schedGender").addEventListener("change", () => {
-      ["schedTeam1", "schedTeam2"].forEach(id => {
-        const s = document.getElementById(id);
-        s.innerHTML = "";
-        teams.forEach(t => {
-          const o = document.createElement("option");
-          o.value = t;
-          o.textContent = t;
-          s.appendChild(o);
-        });
+    function populateSchedulerTeams() {
+      const gender = document.getElementById("schedGender").value;
+      const team1 = document.getElementById("schedTeam1");
+      const team2 = document.getElementById("schedTeam2");
+      team1.innerHTML = "";
+      team2.innerHTML = "";
+      allTeams[gender].forEach(t => {
+        team1.innerHTML += `<option value="${t}">${t}</option>`;
+        team2.innerHTML += `<option value="${t}">${t}</option>`;
       });
-    });
+    }
 
-    document.getElementById("pmGenderSelect").addEventListener("change", () => {
+    function populatePlayerTeams() {
       const gender = document.getElementById("pmGenderSelect").value;
       const select = document.getElementById("pmTeamSelect");
       select.innerHTML = "";
-      teams.forEach(team => {
-        const opt = document.createElement("option");
-        opt.value = team;
-        opt.textContent = team;
-        select.appendChild(opt);
-      });
-    });
-
-    function addPlayerRow(p = {}) {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td><input value="${p.name || ''}"></td>
-        <td><input type="number" value="${p.matches || 0}"></td>
-        <td><input type="number" value="${p.points || 0}"></td>
-        <td><input value="${p.role || ''}"></td>
-        <td><button onclick="this.closest('tr').remove()">Delete</button></td>
-      `;
-      document.querySelector("#playersTable tbody").appendChild(row);
-    }
-
-    function loadPlayers() {
-      const g = document.getElementById("pmGenderSelect").value;
-      const t = document.getElementById("pmTeamSelect").value;
-      db.ref(`players/${g}/${t}`).once("value").then(snap => {
-        const data = snap.val() || {};
-        const tbody = document.querySelector("#playersTable tbody");
-        tbody.innerHTML = "";
-        Object.values(data).forEach(p => addPlayerRow(p));
+      allTeams[gender].forEach(team => {
+        select.innerHTML += `<option value="${team}">${team}</option>`;
       });
     }
 
-    function savePlayers() {
-      const gender = document.getElementById("pmGenderSelect").value;
-      const team = document.getElementById("pmTeamSelect").value;
-      const rows = document.querySelectorAll("#playersTable tbody tr");
-      const data = {};
-      rows.forEach((r, i) => {
-        const inputs = r.querySelectorAll("input");
-        data[`player${i}`] = {
-          name: inputs[0].value,
-          matches: +inputs[1].value,
-          points: +inputs[2].value,
-          role: inputs[3].value
-        };
-      });
-      db.ref(`players/${gender}/${team}`).set(data).then(() => alert("✅ Players saved"));
-    }
-
-    function saveRules() {
-      const r = document.getElementById("rulesText").value;
-      db.ref("rules").set(r).then(() => alert("✅ Rules saved"));
-    }
-
-    db.ref("rules").once("value").then(s => {
-      document.getElementById("rulesText").value = s.val() || "";
-    });
-
-    function scheduleMatch() {
-      const g = document.getElementById("schedGender").value;
-      const t1 = document.getElementById("schedTeam1").value;
-      const t2 = document.getElementById("schedTeam2").value;
-      const d = document.getElementById("matchDate").value;
-      const ti = document.getElementById("matchTime").value;
-      if (!t1 || !t2 || !d || !ti) return alert("Fill all fields");
-      db.ref(`schedule/${d}/${ti}`).set({ team1: t1, team2: t2, gender: g, status: "Scheduled" })
-        .then(() => alert("✅ Match scheduled"));
-    }
-
-    let matchData = {}, team1Key = '', team2Key = '', gender = '';
-
-    function startMatch() {
-      const date = document.getElementById("matchDate").value;
-      const time = document.getElementById("matchTime").value;
-      if (!date || !time) return alert("Please select date and time");
-      db.ref(`schedule/${date}/${time}`).once("value").then(snapshot => {
-        const data = snapshot.val();
-        if (!data || !data.team1 || !data.team2) return alert("Match not found");
-        matchData = data;
-        gender = data.gender;
-        team1Key = data.team1;
-        team2Key = data.team2;
-
-        db.ref(`schedule/${date}/${time}`).update({ status: "Live" });
-
-        document.getElementById("liveControls").style.display = "block";
-        document.getElementById("liveTeams").innerHTML = `
-          <p><span class='team-name' onclick="addTeamScore('${team1Key}')">${team1Key}</span> vs 
-          <span class='team-name' onclick="addTeamScore('${team2Key}')">${team2Key}</span></p>
-          <iframe width="300" height="200" src="https://www.youtube.com/embed/live_stream?channel=UCnkKh0FHDKfUGv1ehq7NH5w" title="Live Match" frameborder="0" allowfullscreen></iframe>
-        `;
-        document.getElementById("winnerSelect").innerHTML = `
-          <option value="${team1Key}">${team1Key}</option>
-          <option value="${team2Key}">${team2Key}</option>
-        `;
-
-        document.getElementById("livePlayers").innerHTML = "";
-        loadPlayerList(gender, team1Key);
-        loadPlayerList(gender, team2Key);
-      });
-    }
-
-    function loadPlayerList(gender, team) {
-      db.ref(`players/${gender}/${team}`).once("value").then(snap => {
-        const players = snap.val();
-        const div = document.createElement("div");
-        div.innerHTML = `<h4>${team}</h4>`;
-        Object.keys(players || {}).forEach(key => {
-          const btn = document.createElement("button");
-          btn.innerText = players[key].name;
-          btn.className = "player-name";
-          btn.onclick = () => addPlayerPoint(gender, team, key);
-          div.appendChild(btn);
-        });
-        document.getElementById("livePlayers").appendChild(div);
-      });
-    }
-
-    function addTeamScore(team) {
-      const path = `schedule/${document.getElementById("matchDate").value}/${document.getElementById("matchTime").value}`;
-      const scoreKey = team === team1Key ? "team1Score" : "team2Score";
-      db.ref(`${path}/${scoreKey}`).transaction(val => (val || 0) + 1);
-    }
-
-    function addPlayerPoint(gender, team, playerKey) {
-      db.ref(`players/${gender}/${team}/${playerKey}/points`).transaction(val => (val || 0) + 1);
-    }
-
-    function endMatch() {
-      const date = document.getElementById("matchDate").value;
-      const time = document.getElementById("matchTime").value;
-      const winner = document.getElementById("winnerSelect").value;
-      const loser = winner === team1Key ? team2Key : team1Key;
-      const updates = {};
-
-      updates[`schedule/${date}/${time}/status`] = "Completed";
-      updates[`schedule/${date}/${time}/winner`] = winner;
-      updates[`points/${gender}/${winner}/won`] = firebase.database.ServerValue.increment(1);
-      updates[`points/${gender}/${loser}/lost`] = firebase.database.ServerValue.increment(1);
-      updates[`points/${gender}/${winner}/points`] = firebase.database.ServerValue.increment(2);
-      updates[`points/${gender}/${winner}/played`] = firebase.database.ServerValue.increment(1);
-      updates[`points/${gender}/${loser}/played`] = firebase.database.ServerValue.increment(1);
-
-      db.ref().update(updates).then(() => alert("✅ Match completed and points updated!"));
-    }
+    window.onload = () => {
+      populateSchedulerTeams();
+      populatePlayerTeams();
+    };
   </script>
 </body>
 </html>
