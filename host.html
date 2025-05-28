@@ -174,19 +174,16 @@
 
         db.ref(`schedule/${date}/${time}`).update({ status: "Live" });
 
-        document.getElementById("liveControls").style.display = "block";
-        document.getElementById("liveTeams").innerHTML = `
-          <p><span class='team-name' onclick="addTeamScore('${team1Key}')">${team1Key}</span> vs 
-          <span class='team-name' onclick="addTeamScore('${team2Key}')">${team2Key}</span></p>
-        `;
-        document.getElementById("winnerSelect").innerHTML = `
-          <option value="${team1Key}">${team1Key}</option>
-          <option value="${team2Key}">${team2Key}</option>
-        `;
+        const urlParams = new URLSearchParams({
+          gender,
+          team1: team1Key,
+          team2: team2Key,
+          date,
+          time
+        });
 
-        document.getElementById("livePlayers").innerHTML = "";
-        loadPlayerList(gender, team1Key);
-        loadPlayerList(gender, team2Key);
+        window.open(`live-score.html?${urlParams.toString()}`, '_blank');
+      });
       });
     }
 
@@ -195,19 +192,30 @@
         const players = snap.val();
         const div = document.createElement("div");
         div.innerHTML = `<h4>${team}</h4>`;
+        const columns = document.createElement("div");
+        columns.style.display = 'flex';
+        columns.style.flexWrap = 'wrap';
         Object.keys(players || {}).forEach(key => {
           const btn = document.createElement("button");
           btn.innerText = players[key].name;
           btn.className = "player-name";
+          btn.style.margin = '4px';
           btn.onclick = () => addPlayerPoint(gender, team, key);
-          div.appendChild(btn);
+          columns.appendChild(btn);
         });
+        div.appendChild(columns);
+        document.getElementById("livePlayers").appendChild(div);
+      });
         document.getElementById("livePlayers").appendChild(div);
       });
     }
 
     function addTeamScore(team) {
-      const path = `schedule/${document.getElementById("matchDate").value}/${document.getElementById("matchTime").value}`;
+      const date = document.getElementById("matchDate").value;
+      const time = document.getElementById("matchTime").value;
+      const gender = document.getElementById("schedGender").value;
+      db.ref(`points/${gender}/${team}/points`).transaction(val => (val || 0) + 1);
+    }/${document.getElementById("matchTime").value}`;
       const scoreKey = `teamScores/${team}`;
       db.ref(scoreKey).transaction(val => (val || 0) + 1);
     }
