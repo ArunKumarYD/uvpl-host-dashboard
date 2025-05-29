@@ -126,16 +126,35 @@ function createPlayerControls(team, containerId) {
     });
   });
 }
-
 window.onload = () => {
+  // Set team names and dropdown
+  document.getElementById("team1Label").textContent = team1;
+  document.getElementById("team2Label").textContent = team2;
+  document.getElementById("team1PlayersLabel").textContent = team1;
+  document.getElementById("team2PlayersLabel").textContent = team2;
+
+  const winnerDropdown = document.getElementById("winnerTeam");
+  winnerDropdown.innerHTML = `
+    <option value="${team1}">${team1}</option>
+    <option value="${team2}">${team2}</option>
+  `;
+
+  // Load player controls
   createPlayerControls(team1, "team1Players");
   createPlayerControls(team2, "team2Players");
 
-  // Initialize team score spans
+  // Live team score updates
   const ref1 = db.ref(`points/${gender}/${team1}/points`);
   ref1.on("value", snap => {
     document.getElementById("score-team1").textContent = `${snap.val() || 0} pts`;
   });
+
+  const ref2 = db.ref(`points/${gender}/${team2}/points`);
+  ref2.on("value", snap => {
+    document.getElementById("score-team2").textContent = `${snap.val() || 0} pts`;
+  });
+};
+
 
   const ref2 = db.ref(`points/${gender}/${team2}/points`);
   ref2.on("value", snap => {
@@ -154,7 +173,6 @@ function declareWinner() {
 
   generateMatchSummary(winner, referee);
 }
-
 function generateMatchSummary(winner, referee) {
   const summary = [
     `United Volleyball Premier League - Season 5`,
