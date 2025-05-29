@@ -72,10 +72,7 @@ const gender = params.get('gender');
 const team1 = params.get('team1');
 const team2 = params.get('team2');
 const date = params.get('date');
-
-
-
-});
+const time = params.get('time');
 
 function updateTeamScore(which, change) {
   const team = which === 'team1' ? team1 : team2;
@@ -136,7 +133,6 @@ window.onload = () => {
   createPlayerControls(team1, "team1Players");
   createPlayerControls(team2, "team2Players");
 
-  // Initialize team score spans
   const ref1 = db.ref(`points/${gender}/${team1}/points`);
   ref1.on("value", snap => {
     document.getElementById("score-team1").textContent = `${snap.val() || 0} pts`;
@@ -187,29 +183,31 @@ function generateMatchSummary(winner, referee) {
     const doc = new jsPDF();
     doc.setFontSize(14);
     doc.setFontSize(30);
-doc.setTextColor(200, 200, 200);
-doc.text("UVPL - 5", 105, 150, { align: "center", angle: 45 });
-doc.setTextColor(0, 0, 0);
-doc.setFontSize(14);
-const logo = new Image();
-logo.src = "https://arunkumaryd.github.io/uvpl-host-dashboard/logo.png"; // Update this URL to your actual logo path
-logo.onload = () => {
-  doc.addImage(logo, 'PNG', 150, 10, 40, 20);
+    doc.setTextColor(200, 200, 200);
+    doc.text("UVPL - 5", 105, 150, { align: "center", angle: 45 });
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(14);
 
-  const now = new Date();
-  const footer = `Generated on: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
-  doc.setFontSize(10);
-  doc.text(footer, 10, 290);
+    const logo = new Image();
+    logo.src = "https://arunkumaryd.github.io/uvpl-host-dashboard/logo.png";
+    logo.onload = () => {
+      doc.addImage(logo, 'PNG', 150, 10, 40, 20);
 
-  const lines = doc.splitTextToSize(summary.join("\n"), 180);
-  doc.setFontSize(14);
-  doc.text(lines, 10, 20);
+      const now = new Date();
+      const footer = `Generated on: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+      doc.setFontSize(10);
+      doc.text(footer, 10, 290);
 
-  doc.save(`Match_${date}_${team1}_vs_${team2}.pdf`);
-  alert("✅ Match summary PDF downloaded. Closing tab.");
-  setTimeout(() => window.close(), 1500);
-};
+      const lines = doc.splitTextToSize(summary.join("\n"), 180);
+      doc.setFontSize(14);
+      doc.text(lines, 10, 20);
 
+      doc.save(`Match_${date}_${team1}_vs_${team2}.pdf`);
+      alert("✅ Match summary PDF downloaded. Closing tab.");
+      setTimeout(() => window.close(), 1500);
+    };
+  });
+}
 </script>
 </body>
 </html>
