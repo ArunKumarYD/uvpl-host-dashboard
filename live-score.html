@@ -2,185 +2,157 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>UVPL Live Score Sheet</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"/>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-image: url('assets/watermark.png');
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: contain;
+      opacity: 0.95;
+    }
+    .watermark-header {
+      background: url('assets/watermark.png') center top no-repeat;
+      background-size: 100px;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 p-4 text-gray-900">
-
-  <h1 class="text-2xl font-bold mb-4 text-center">UVPL Live Score Sheet</h1>
-
-  <div class="max-w-2xl mx-auto mb-4">
-    <label class="block text-sm font-medium mb-1">Select Live Match</label>
-    <select id="matchSelector" class="w-full p-2 border rounded">
-      <option value="">-- Select Match --</option>
-    </select>
-  </div>
-
-  <div id="scoreContainer" class="hidden max-w-5xl mx-auto bg-white p-4 rounded shadow">
-    <div class="flex justify-between items-center mb-4">
-      <img id="companyLogo" src="assets/logos/uvpl.png" class="h-16"/>
-      <div>
-        <div id="matchInfo" class="text-lg font-semibold"></div>
-        <div id="matchDateTime" class="text-sm text-gray-500"></div>
-      </div>
-      <img id="team2Logo" src="" class="h-16"/>
-    </div>
-
-    <div class="overflow-x-auto">
-      <table class="w-full text-center border mb-4">
-        <thead class="bg-gray-200">
-          <tr>
-            <th class="p-2">Set</th>
-            <th class="p-2" id="team1NameHeader">Team 1</th>
-            <th class="p-2" id="team2NameHeader">Team 2</th>
-          </tr>
-        </thead>
-        <tbody id="scoreTable">
-          <!-- Dynamic sets will be inserted here -->
-        </tbody>
-        <tfoot class="bg-gray-100 font-bold">
-          <tr>
-            <td class="p-2">Total</td>
-            <td class="p-2" id="team1Total">0</td>
-            <td class="p-2" id="team2Total">0</td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
-
-    <div class="grid grid-cols-2 gap-4 mb-4">
-      <div>
-        <h2 class="font-bold mb-2" id="team1PlayersTitle">Team 1 Players</h2>
-        <div class="flex mb-2">
-          <input type="text" id="player1Input" class="flex-1 p-2 border rounded" placeholder="Add player name"/>
-          <button onclick="addPlayer('team1')" class="ml-2 px-4 py-2 bg-green-500 text-white rounded">Add</button>
-        </div>
-        <ul id="team1Players" class="space-y-1"></ul>
-      </div>
-      <div>
-        <h2 class="font-bold mb-2" id="team2PlayersTitle">Team 2 Players</h2>
-        <div class="flex mb-2">
-          <input type="text" id="player2Input" class="flex-1 p-2 border rounded" placeholder="Add player name"/>
-          <button onclick="addPlayer('team2')" class="ml-2 px-4 py-2 bg-green-500 text-white rounded">Add</button>
-        </div>
-        <ul id="team2Players" class="space-y-1"></ul>
+<body class="p-4">
+  <div class="max-w-5xl mx-auto bg-white p-6 rounded shadow">
+    <div class="flex justify-between items-center border-b pb-4">
+      <img src="assets/logos/company-logo.png" alt="Company Logo" class="h-16">
+      <h1 class="text-2xl font-bold text-center">UVPL - 5 Live Score Sheet</h1>
+      <div class="flex space-x-2">
+        <img id="team1-logo" src="assets/logos/team1.png" alt="Team 1 Logo" class="h-16">
+        <img id="team2-logo" src="assets/logos/team2.png" alt="Team 2 Logo" class="h-16">
       </div>
     </div>
 
-    <div class="text-center">
-      <button onclick="declareWinner()" class="px-6 py-3 bg-blue-600 text-white rounded font-semibold">Declare Winner</button>
+    <div class="mt-4">
+      <div class="grid grid-cols-4 gap-4">
+        <div class="font-bold">Set</div>
+        <div id="team1-name">Team 1</div>
+        <div id="team2-name">Team 2</div>
+        <div>Winner</div>
+
+        <template id="set-template">
+          <div>Set <span class="set-number"></span></div>
+          <div class="flex items-center">
+            <button class="decrement bg-red-500 text-white px-2">-</button>
+            <span class="mx-2 team1-score">0</span>
+            <button class="increment bg-green-500 text-white px-2">+</button>
+          </div>
+          <div class="flex items-center">
+            <button class="decrement bg-red-500 text-white px-2">-</button>
+            <span class="mx-2 team2-score">0</span>
+            <button class="increment bg-green-500 text-white px-2">+</button>
+          </div>
+          <div class="winner"></div>
+        </template>
+      </div>
+    </div>
+
+    <div class="mt-6 font-bold">Total:</div>
+    <div class="grid grid-cols-3 gap-4 mb-4">
+      <div>Total</div>
+      <div id="team1-total">0</div>
+      <div id="team2-total">0</div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-8">
+      <div>
+        <h3 class="font-semibold">Team 1 Players</h3>
+        <ul id="team1-players" class="space-y-2"></ul>
+      </div>
+      <div>
+        <h3 class="font-semibold">Team 2 Players</h3>
+        <ul id="team2-players" class="space-y-2"></ul>
+      </div>
+    </div>
+
+    <div class="mt-6">
+      <label class="block font-semibold">Referee Signature:</label>
+      <input type="text" id="referee-sign" placeholder="Referee Name" class="w-full border p-2 rounded"/>
+    </div>
+
+    <div class="mt-6">
+      <button onclick="generatePDF()" class="bg-blue-600 text-white px-4 py-2 rounded">Download PDF</button>
     </div>
   </div>
 
   <script>
-    const matches = [
-      {
-        team1: "United Challengers",
-        team2: "UC Twistter",
-        date: "2025-05-24",
-        time: "18:00",
-        gender: "Men",
-        logo1: "assets/logos/unitedchallengers.png",
-        logo2: "assets/logos/uctwistter.png"
-      },
-      {
-        team1: "Azraq Astronuts",
-        team2: "IJC Ninjas",
-        date: "2025-05-30",
-        time: "18:00",
-        gender: "Men",
-        logo1: "assets/logos/azraqastronuts.png",
-        logo2: "assets/logos/ijcninjas.png"
-      }
-    ];
+    const team1Players = ['Player A1', 'Player A2', 'Player A3'];
+    const team2Players = ['Player B1', 'Player B2', 'Player B3'];
+    const numSets = 3;
 
-    const matchSelector = document.getElementById("matchSelector");
-    const scoreContainer = document.getElementById("scoreContainer");
-    const scoreTable = document.getElementById("scoreTable");
+    const team1Total = document.getElementById('team1-total');
+    const team2Total = document.getElementById('team2-total');
+    const setTemplate = document.getElementById('set-template');
+    const container = setTemplate.parentElement;
 
-    matches.forEach((m, i) => {
-      const opt = document.createElement("option");
-      opt.value = i;
-      opt.textContent = `${m.team1} vs ${m.team2} (${m.date} ${m.time})`;
-      matchSelector.appendChild(opt);
-    });
+    let scores = { team1: [0,0,0], team2: [0,0,0] };
 
-    matchSelector.addEventListener("change", (e) => {
-      const match = matches[e.target.value];
-      if (!match) return;
+    for (let i = 0; i < numSets; i++) {
+      const clone = setTemplate.content.cloneNode(true);
+      clone.querySelector('.set-number').textContent = i + 1;
+      const team1Score = clone.querySelectorAll('.team1-score')[0];
+      const team2Score = clone.querySelectorAll('.team2-score')[0];
 
-      scoreContainer.classList.remove("hidden");
-      document.getElementById("team1NameHeader").textContent = match.team1;
-      document.getElementById("team2NameHeader").textContent = match.team2;
-      document.getElementById("team1PlayersTitle").textContent = `${match.team1} Players`;
-      document.getElementById("team2PlayersTitle").textContent = `${match.team2} Players`;
-      document.getElementById("matchInfo").textContent = `${match.team1} vs ${match.team2}`;
-      document.getElementById("matchDateTime").textContent = `${match.date} | ${match.time}`;
-      document.getElementById("companyLogo").src = "assets/logos/uvpl.png";
-      document.getElementById("team2Logo").src = match.logo2;
+      clone.querySelectorAll('.increment')[0].onclick = () => updateScore('team1', i, 1);
+      clone.querySelectorAll('.decrement')[0].onclick = () => updateScore('team1', i, -1);
+      clone.querySelectorAll('.increment')[1].onclick = () => updateScore('team2', i, 1);
+      clone.querySelectorAll('.decrement')[1].onclick = () => updateScore('team2', i, -1);
 
-      document.getElementById("team1Players").innerHTML = "";
-      document.getElementById("team2Players").innerHTML = "";
+      container.appendChild(clone);
+    }
 
-      scoreTable.innerHTML = "";
-      for (let i = 1; i <= 3; i++) {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td class="p-2">Set ${i}</td>
-          <td class="p-2"><button onclick="adjustScore(${i}, 'team1', 1)">+</button> <span id="s${i}t1">0</span> <button onclick="adjustScore(${i}, 'team1', -1)">-</button></td>
-          <td class="p-2"><button onclick="adjustScore(${i}, 'team2', 1)">+</button> <span id="s${i}t2">0</span> <button onclick="adjustScore(${i}, 'team2', -1)">-</button></td>
+    function updateScore(team, setIndex, delta) {
+      scores[team][setIndex] += delta;
+      if (scores[team][setIndex] < 0) scores[team][setIndex] = 0;
+      document.querySelectorAll(`.${team}-score`)[setIndex].textContent = scores[team][setIndex];
+      updateTotal();
+    }
+
+    function updateTotal() {
+      const total1 = scores.team1.reduce((a,b)=>a+b,0);
+      const total2 = scores.team2.reduce((a,b)=>a+b,0);
+      team1Total.textContent = total1;
+      team2Total.textContent = total2;
+    }
+
+    function addPlayers(team, players) {
+      const ul = document.getElementById(`${team}-players`);
+      players.forEach((name, index) => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <span>${name}</span>
+          <button onclick="adjustPlayerScore('${team}', ${index}, 1)" class="ml-2 px-1 bg-green-500 text-white">+</button>
+          <button onclick="adjustPlayerScore('${team}', ${index}, -1)" class="ml-1 px-1 bg-red-500 text-white">-</button>
+          <span id="${team}-player-${index}" class="ml-2">0</span>
         `;
-        scoreTable.appendChild(row);
-      }
-      updateTotals();
-    });
-
-    function adjustScore(set, team, delta) {
-      const el = document.getElementById(`s${set}${team === 'team1' ? 't1' : 't2'}`);
-      let val = parseInt(el.textContent) + delta;
-      el.textContent = Math.max(0, val);
-      updateTotals();
+        ul.appendChild(li);
+      });
     }
 
-    function updateTotals() {
-      let t1 = 0, t2 = 0;
-      for (let i = 1; i <= 3; i++) {
-        t1 += parseInt(document.getElementById(`s${i}t1`).textContent || 0);
-        t2 += parseInt(document.getElementById(`s${i}t2`).textContent || 0);
-      }
-      document.getElementById("team1Total").textContent = t1;
-      document.getElementById("team2Total").textContent = t2;
+    let playerScores = {
+      team1: Array(team1Players.length).fill(0),
+      team2: Array(team2Players.length).fill(0),
+    };
+
+    function adjustPlayerScore(team, index, delta) {
+      playerScores[team][index] += delta;
+      if (playerScores[team][index] < 0) playerScores[team][index] = 0;
+      document.getElementById(`${team}-player-${index}`).textContent = playerScores[team][index];
     }
 
-    function addPlayer(team) {
-      const input = document.getElementById(team === "team1" ? "player1Input" : "player2Input");
-      const name = input.value.trim();
-      if (!name) return;
-      const ul = document.getElementById(`${team}Players`);
-      const li = document.createElement("li");
-      li.textContent = name;
-      ul.appendChild(li);
-      input.value = "";
-    }
+    addPlayers('team1', team1Players);
+    addPlayers('team2', team2Players);
 
-    function declareWinner() {
-      const team1 = document.getElementById("team1NameHeader").textContent;
-      const team2 = document.getElementById("team2NameHeader").textContent;
-      const t1Score = parseInt(document.getElementById("team1Total").textContent);
-      const t2Score = parseInt(document.getElementById("team2Total").textContent);
-      const winner = t1Score > t2Score ? team1 : team2;
-
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      doc.setFontSize(16);
-      doc.text(`UVPL Match Result`, 20, 20);
-      doc.setFontSize(12);
-      doc.text(`Match: ${team1} vs ${team2}`, 20, 30);
-      doc.text(`Final Score: ${team1} ${t1Score} - ${t2Score} ${team2}`, 20, 40);
-      doc.text(`Winner: ${winner}`, 20, 50);
-      doc.save(`UVPL_${team1}_vs_${team2}.pdf`);
+    function generatePDF() {
+      alert('PDF generation will be handled here with logos, scores, players, and referee signature.');
+      // Use html2pdf.js or similar library to export to PDF
     }
   </script>
 </body>
