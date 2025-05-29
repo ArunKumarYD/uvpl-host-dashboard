@@ -72,7 +72,7 @@ const gender = params.get('gender');
 const team1 = params.get('team1');
 const team2 = params.get('team2');
 const date = params.get('date');
-const time = params.get('time');
+
 
 
 });
@@ -209,11 +209,7 @@ logo.onload = () => {
   alert("✅ Match summary PDF downloaded. Closing tab.");
   setTimeout(() => window.close(), 1500);
 };
-    doc.save(`Match_${date}_${team1}_vs_${team2}.pdf`);
-    alert("✅ Match summary PDF downloaded. Closing tab.");
-    setTimeout(() => window.close(), 1500);
-  });
-}
+
 </script>
 </body>
 </html>
