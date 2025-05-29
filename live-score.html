@@ -168,8 +168,30 @@ function generateMatchSummary(winner, referee) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     doc.setFontSize(14);
-    const lines = doc.splitTextToSize(summary.join("\n"), 180);
-    doc.text(lines, 10, 10);
+    doc.setFontSize(30);
+doc.setTextColor(200, 200, 200);
+doc.text("UVPL - 5", 105, 150, { align: "center", angle: 45 });
+doc.setTextColor(0, 0, 0);
+doc.setFontSize(14);
+const logo = new Image();
+logo.src = "https://arunkumaryd.github.io/uvpl-host-dashboard/logo.png"; // Update this URL to your actual logo path
+logo.onload = () => {
+  doc.addImage(logo, 'PNG', 150, 10, 40, 20);
+
+  const now = new Date();
+  const footer = `Generated on: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+  doc.setFontSize(10);
+  doc.text(footer, 10, 290);
+
+  const lines = doc.splitTextToSize(summary.join("
+"), 180);
+  doc.setFontSize(14);
+  doc.text(lines, 10, 20);
+
+  doc.save(`Match_${date}_${team1}_vs_${team2}.pdf`);
+  alert("✅ Match summary PDF downloaded. Closing tab.");
+  setTimeout(() => window.close(), 1500);
+};
     doc.save(`Match_${date}_${team1}_vs_${team2}.pdf`);
     alert("✅ Match summary PDF downloaded. Closing tab.");
     setTimeout(() => window.close(), 1500);
