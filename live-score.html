@@ -1,352 +1,213 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>UVPL -5 LIVE SCORE SHEET</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    position: relative;
-  }
-  #watermark {
-    position: fixed;
-    top: 40%;
-    left: 30%;
-    font-size: 6rem;
-    color: rgba(200, 200, 200, 0.15);
-    transform: rotate(-30deg);
-    pointer-events: none;
-    user-select: none;
-    z-index: 0;
-  }
-  header, footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  header img, footer img {
-    max-height: 80px;
-  }
-  h1 {
-    text-align: center;
-    margin-bottom: 10px;
-    position: relative;
-    z-index: 1;
-  }
-  .team-container {
-    border: 1px solid #444;
-    padding: 15px;
-    margin-bottom: 15px;
-    position: relative;
-    z-index: 1;
-  }
-  .team-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .team-logo {
-    max-height: 60px;
-    max-width: 120px;
-  }
-  .score {
-    font-size: 2rem;
-    font-weight: bold;
-  }
-  .players-list {
-    margin-top: 10px;
-  }
-  .player-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 5px 0;
-  }
-  .player-name {
-    flex-grow: 1;
-  }
-  button {
-    padding: 3px 8px;
-    font-size: 1rem;
-    cursor: pointer;
-  }
-  #sets-status {
-    margin: 20px 0;
-    font-size: 1.2rem;
-    font-weight: bold;
-    text-align: center;
-  }
-  #declare-winner-btn {
-    display: block;
-    margin: 20px auto;
-    font-size: 1.1rem;
-    padding: 10px 25px;
-    cursor: pointer;
-  }
-  #referee-signature {
-    margin-top: 40px;
-    border-top: 1px solid #555;
-    width: 300px;
-    text-align: center;
-    font-style: italic;
-  }
-</style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Match – UVPL</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 1.5rem; }
+    h1 { text-align: center; color: #4c1d95; }
+    .score-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .team-box { flex: 1; text-align: center; }
+    .team-score { font-size: 1.2rem; margin: 0.5rem; }
+    .score-btns button { margin: 0 5px; padding: 0.3rem 1rem; font-size: 1.1rem; }
+    .players-wrapper { display: flex; justify-content: space-around; gap: 1rem; margin: 2rem 0; }
+    .player-column { flex: 1; }
+    .player-column h3 { text-align: center; background: #ede9fe; padding: 0.5rem; border-radius: 6px; }
+    .player-controls { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-top: 1rem; }
+    .player-controls div { display: flex; align-items: center; gap: 0.25rem; }
+    iframe { width: 100%; height: 300px; border: none; margin-top: 1rem; }
+  </style>
 </head>
 <body>
-<div id="watermark">UVPL - 5</div>
-
-<header>
-  <img id="companyLogo" src="assets/logos/company-logo.png" alt="Company Logo" />
-  <h1>UVPL -5 LIVE SCORE SHEET</h1>
-  <div style="width:120px"></div> <!-- placeholder to balance header -->
-</header>
-
-<div class="team-container" id="team1Container">
-  <div class="team-header">
-    <img id="team1Logo" class="team-logo" src="" alt="Team 1 Logo" />
-    <div>
-      <h2 id="team1Name">Team 1</h2>
-      <div class="score" id="team1TotalScore">0</div>
+  <h1>🏐 UVPL - Season 5</h1>
+  <div class="score-header">
+    <div class="team-box">
+      <h2 id="team1Label"></h2>
+      <div class="score-btns">
+        <button onclick="updateTeamScore('team1', 1)">+</button>
+        <span id="score-team1">0 pts</span>
+        <button onclick="updateTeamScore('team1', -1)">-</button>
+      </div>
+    </div>
+    <div class="team-box">
+      <h2 id="team2Label"></h2>
+      <div class="score-btns">
+        <button onclick="updateTeamScore('team2', 1)">+</button>
+        <span id="score-team2">0 pts</span>
+        <button onclick="updateTeamScore('team2', -1)">-</button>
+      </div>
     </div>
   </div>
-  <div class="players-list" id="team1PlayersContainer">
-    <!-- Players with + / - buttons appear here -->
-  </div>
-</div>
-
-<div class="team-container" id="team2Container">
-  <div class="team-header">
-    <div>
-      <h2 id="team2Name">Team 2</h2>
-      <div class="score" id="team2TotalScore">0</div>
+  <div class="players-wrapper">
+    <div class="player-column">
+      <h3>Players – <span id="team1PlayersLabel"></span></h3>
+      <div class="player-controls" id="team1Players"></div>
     </div>
-    <img id="team2Logo" class="team-logo" src="" alt="Team 2 Logo" />
+    <div class="player-column">
+      <h3>Players – <span id="team2PlayersLabel"></span></h3>
+      <div class="player-controls" id="team2Players"></div>
+    </div>
   </div>
-  <div class="players-list" id="team2PlayersContainer">
-    <!-- Players with + / - buttons appear here -->
+  <div>
+    <h3>Referees</h3>
+    <input type="text" id="referee1" placeholder="Referee 1" />
+    <input type="text" id="referee2" placeholder="Referee 2" />
   </div>
-</div>
-
-<div id="sets-status">Sets: 0 - 0</div>
-
-<button id="declare-winner-btn" disabled>Declare Winner & Download PDF</button>
-
-<div id="referee-signature" contenteditable="true" spellcheck="false" placeholder="Referee Signature (click to sign)"></div>
-
-<footer>
-  <small>UVPL - 5 &copy; 2025</small>
-</footer>
+  <div style="margin-top: 1rem;">
+    <select id="winnerTeam"></select>
+    <button onclick="declareWinner()">🏆 Declare Winner</button>
+  </div>
+  <iframe src="https://www.youtube.com/embed/live_stream?channel=UCyZYHc1fNmNMP3eU5YSL1AQ" allowfullscreen></iframe>
 
 <script>
-(async () => {
-  // Extract URL params
-  const urlParams = new URLSearchParams(window.location.search);
-  const gender = urlParams.get('gender');
-  const team1Name = urlParams.get('team1');
-  const team2Name = urlParams.get('team2');
-  const matchDate = urlParams.get('date') || '';
-  const matchTime = urlParams.get('time') || '';
+const db = firebase.database();
+const params = new URLSearchParams(window.location.search);
+const gender = params.get('gender');
+const team1 = params.get('team1');
+const team2 = params.get('team2');
+const date = params.get('date');
+const time = params.get('time');
 
-  // GitHub raw JSON URL for teams and players (replace with your actual GitHub repo URL)
-  const teamsPlayersUrl = 'https://raw.githubusercontent.com/YourGitHubUsername/YourRepoName/main/assets/data/teams-players.json';
+function updateTeamScore(which, change) {
+  const team = which === 'team1' ? team1 : team2;
+  const scoreSpan = document.getElementById(`score-${which}`);
+  const ref = db.ref(`points/${gender}/${team}/points`);
+  ref.transaction(p => Math.max((p || 0) + change, 0));
+  ref.on("value", snap => {
+    scoreSpan.textContent = `${snap.val() || 0} pts`;
+  });
+}
 
-  // Logo path folder
-  const logoBasePath = 'assets/logos/';
-
-  // State to hold scores and sets
-  let team1Scores = { total: 0, players: {} };
-  let team2Scores = { total: 0, players: {} };
-
-  let setsWon = { team1: 0, team2: 0 };
-  let currentSet = 1;
-
-  // Load teams-players data from GitHub
-  let teamsPlayers = {};
-  try {
-    const res = await fetch(teamsPlayersUrl);
-    teamsPlayers = await res.json();
-  } catch (err) {
-    alert('Failed to load teams-players data.');
-    console.error(err);
-    return;
-  }
-
-  // Fill team names in UI
-  document.getElementById('team1Name').textContent = team1Name;
-  document.getElementById('team2Name').textContent = team2Name;
-
-  // Set logos (put your logos in assets/logos folder with these exact names)
-  document.getElementById('team1Logo').src = logoBasePath + team1Name.replace(/ /g, '-') + '.png';
-  document.getElementById('team2Logo').src = logoBasePath + team2Name.replace(/ /g, '-') + '.png';
-  document.getElementById('companyLogo').src = logoBasePath + 'company-logo.png';
-
-  // Get players for each team & gender
-  const team1Players = teamsPlayers[gender]?.[team1Name] || [];
-  const team2Players = teamsPlayers[gender]?.[team2Name] || [];
-
-  // Initialize player scores
-  team1Players.forEach(p => team1Scores.players[p] = 0);
-  team2Players.forEach(p => team2Scores.players[p] = 0);
-
-  // Render players with +/- buttons
-  function renderPlayers(containerId, players, scoreObj) {
+function createPlayerControls(team, containerId) {
+  db.ref(`players/${gender}/${team}`).once("value", snap => {
+    const data = snap.val();
     const container = document.getElementById(containerId);
-    container.innerHTML = '';
-    players.forEach(player => {
-      const div = document.createElement('div');
-      div.className = 'player-row';
-      div.innerHTML = `
-        <span class="player-name">${player}</span>
-        <button onclick="updatePlayerScore('${containerId}', '${player}', -1)">-</button>
-        <span id="${containerId}-${player}-score">0</span>
-        <button onclick="updatePlayerScore('${containerId}', '${player}', 1)">+</button>
-      `;
+    container.innerHTML = "";
+    Object.entries(data || {}).forEach(([key, player]) => {
+      const div = document.createElement("div");
+      const span = document.createElement("span");
+      span.id = `score-${key}`;
+      span.textContent = `${player.name} (0 pts)`;
+
+      const btnPlus = document.createElement("button");
+      btnPlus.textContent = "+";
+      btnPlus.onclick = () => {
+        db.ref(`players/${gender}/${team}/${key}/points`).transaction(p => (p || 0) + 1);
+      };
+
+      const btnMinus = document.createElement("button");
+      btnMinus.textContent = "-";
+      btnMinus.onclick = () => {
+        db.ref(`players/${gender}/${team}/${key}/points`).transaction(p => Math.max((p || 0) - 1, 0));
+      };
+
+      db.ref(`players/${gender}/${team}/${key}/points`).on("value", snap => {
+        span.textContent = `${player.name} (${snap.val() || 0} pts)`;
+      });
+
+      div.appendChild(span);
+      div.appendChild(btnPlus);
+      div.appendChild(btnMinus);
       container.appendChild(div);
     });
-  }
+  });
+}
 
-  window.updatePlayerScore = function(containerId, player, delta) {
-    let scoreObj = containerId === 'team1PlayersContainer' ? team1Scores : team2Scores;
-    scoreObj.players[player] = Math.max(0, scoreObj.players[player] + delta);
+window.onload = () => {
+  document.getElementById("team1Label").textContent = team1;
+  document.getElementById("team2Label").textContent = team2;
+  document.getElementById("team1PlayersLabel").textContent = team1;
+  document.getElementById("team2PlayersLabel").textContent = team2;
 
-    // Update player score display
-    const scoreSpan = document.getElementById(`${containerId}-${player}-score`);
-    scoreSpan.textContent = scoreObj.players[player];
+  const winnerDropdown = document.getElementById("winnerTeam");
+  winnerDropdown.innerHTML = `
+    <option value="${team1}">${team1}</option>
+    <option value="${team2}">${team2}</option>
+  `;
+  createPlayerControls(team1, "team1Players");
+  createPlayerControls(team2, "team2Players");
 
-    // Recalculate total
-    scoreObj.total = Object.values(scoreObj.players).reduce((a,b) => a + b, 0);
-    if (containerId === 'team1PlayersContainer') {
-      document.getElementById('team1TotalScore').textContent = scoreObj.total;
-    } else {
-      document.getElementById('team2TotalScore').textContent = scoreObj.total;
-    }
+  const ref1 = db.ref(`points/${gender}/${team1}/points`);
+  ref1.on("value", snap => {
+    document.getElementById("score-team1").textContent = `${snap.val() || 0} pts`;
+  });
 
-    updateSetsStatus();
-  };
+  const ref2 = db.ref(`points/${gender}/${team2}/points`);
+  ref2.on("value", snap => {
+    document.getElementById("score-team2").textContent = `${snap.val() || 0} pts`;
+  });
+};
 
-  // Update sets status and check winner
-  function updateSetsStatus() {
-    const setsStatus = document.getElementById('sets-status');
+function declareWinner() {
+  const winner = document.getElementById("winnerTeam").value;
+  const loser = winner === team1 ? team2 : team1;
+  const referee = `${document.getElementById("referee1").value}, ${document.getElementById("referee2").value}`;
 
-    // For demonstration: each team wins a set if total score reaches 25+ and 2 points lead
-    // Here simplified: if total score >= 25 and lead by 2, that team wins the set
-    // After a set ends, scores reset and next set starts
+  db.ref(`points/${gender}/${winner}`).update({ won: firebase.database.ServerValue.increment(1), played: firebase.database.ServerValue.increment(1), points: firebase.database.ServerValue.increment(2) });
+  db.ref(`points/${gender}/${loser}`).update({ lost: firebase.database.ServerValue.increment(1), played: firebase.database.ServerValue.increment(1) });
+  db.ref(`schedule/${date}/${time}`).update({ status: "Completed", winner, referee });
 
-    if (team1Scores.total >= 25 && team1Scores.total - team2Scores.total >= 2) {
-      setsWon.team1++;
-      currentSet++;
-      resetScores();
-    } else if (team2Scores.total >= 25 && team2Scores.total - team1Scores.total >= 2) {
-      setsWon.team2++;
-      currentSet++;
-      resetScores();
-    }
+  generateMatchSummary(winner, referee);
+}
 
-    setsStatus.textContent = `Sets: ${setsWon.team1} - ${setsWon.team2}`;
+function generateMatchSummary(winner, referee) {
+  const summary = [
+    `United Volleyball Premier League - Season 5`,
+    `Match: ${team1} vs ${team2}`,
+    `Date: ${date} at ${time}`,
+    `Category: ${gender}`,
+    `Referees: ${referee}`,
+    `Winner: ${winner}`
+  ];
 
-    // Enable Declare Winner button if any team has won 2 sets
-    const declareBtn = document.getElementById('declare-winner-btn');
-    if (setsWon.team1 === 2 || setsWon.team2 === 2) {
-      declareBtn.disabled = false;
-    } else {
-      declareBtn.disabled = true;
-    }
-  }
+  const scorePromises = [];
+  scorePromises.push(db.ref(`points/${gender}/${team1}/points`).once("value").then(snap => summary.push(`${team1} Score: ${snap.val() || 0}`)));
+  scorePromises.push(db.ref(`points/${gender}/${team2}/points`).once("value").then(snap => summary.push(`${team2} Score: ${snap.val() || 0}`)));
 
-  function resetScores() {
-    // Reset player scores and totals for new set
-    Object.keys(team1Scores.players).forEach(p => team1Scores.players[p] = 0);
-    Object.keys(team2Scores.players).forEach(p => team2Scores.players[p] = 0);
-    team1Scores.total = 0;
-    team2Scores.total = 0;
+  [team1, team2].forEach(team => {
+    scorePromises.push(db.ref(`players/${gender}/${team}`).once("value").then(snap => {
+      const players = snap.val();
+      summary.push(`${team} Players:`);
+      Object.values(players || {}).forEach(p => summary.push(`${p.name}: ${p.points || 0} pts`));
+    }));
+  });
 
-    // Update UI
-    for (const player of Object.keys(team1Scores.players)) {
-      document.getElementById(`team1PlayersContainer-${player}-score`)?.textContent = '0';
-      const spanId = `team1PlayersContainer-${player}-score`;
-      const el = document.getElementById(spanId);
-      if(el) el.textContent = '0';
-    }
-    for (const player of Object.keys(team2Scores.players)) {
-      const spanId = `team2PlayersContainer-${player}-score`;
-      const el = document.getElementById(spanId);
-      if(el) el.textContent = '0';
-    }
-    document.getElementById('team1TotalScore').textContent = '0';
-    document.getElementById('team2TotalScore').textContent = '0';
-  }
-
-  // Initial render
-  renderPlayers('team1PlayersContainer', team1Players, team1Scores);
-  renderPlayers('team2PlayersContainer', team2Players, team2Scores);
-
-  // Handle Declare Winner & Download PDF
-  document.getElementById('declare-winner-btn').onclick = () => {
-    const winner = setsWon.team1 > setsWon.team2 ? team1Name : team2Name;
-    generatePDF(winner);
-  };
-
-  function generatePDF(winner) {
+  Promise.all(scorePromises).then(() => {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
-
-    // Title
-    doc.setFontSize(18);
-    doc.text('UVPL - 5 LIVE SCORE SHEET', 105, 15, null, null, 'center');
-
-    // Date & Time
-    doc.setFontSize(12);
-    doc.text(`Date: ${matchDate}`, 15, 25);
-    doc.text(`Time: ${matchTime}`, 15, 32);
-
-    // Teams and logos (draw image is async, simplified here with placeholders)
     doc.setFontSize(14);
-    doc.text(team1Name, 15, 45);
-    doc.text(team2Name, 120, 45);
+    doc.setFontSize(30);
+    doc.setTextColor(200, 200, 200);
+    doc.text("UVPL - 5", 105, 150, { align: "center", angle: 45 });
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(14);
 
-    // Total sets won
-    doc.text(`Sets Won - ${team1Name}: ${setsWon.team1}`, 15, 55);
-    doc.text(`Sets Won - ${team2Name}: ${setsWon.team2}`, 120, 55);
+    const logo = new Image();
+    logo.src = "https://arunkumaryd.github.io/uvpl-host-dashboard/logo.png";
+    logo.onload = () => {
+      doc.addImage(logo, 'PNG', 150, 10, 40, 20);
 
-    // Winner
-    doc.setFontSize(16);
-    doc.text(`Winner: ${winner}`, 105, 65, null, null, 'center');
+      const now = new Date();
+      const footer = `Generated on: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+      doc.setFontSize(10);
+      doc.text(footer, 10, 290);
 
-    // Player scores
-    doc.setFontSize(12);
-    doc.text('Player Scores:', 15, 75);
+      const lines = doc.splitTextToSize(summary.join("\n"), 180);
+      doc.setFontSize(14);
+      doc.text(lines, 10, 20);
 
-    // List players team 1
-    let y = 82;
-    for (const player of Object.keys(team1Scores.players)) {
-      doc.text(`${player}: ${team1Scores.players[player]}`, 20, y);
-      y += 7;
-    }
-    y += 5;
-    doc.text('------------------', 15, y);
-    y += 7;
-
-    // List players team 2
-    doc.text('Player Scores:', 120, 75);
-    y = 82;
-    for (const player of Object.keys(team2Scores.players)) {
-      doc.text(`${player}: ${team2Scores.players[player]}`, 120, y);
-      y += 7;
-    }
-
-    // Referee signature
-    const refereeSig = document.getElementById('referee-signature').textContent.trim();
-    if (refereeSig) {
-      doc.text(`Referee: ${refereeSig}`, 15, y + 15);
-    }
-
-    doc.save(`UVPL5_${team1Name}_vs_${team2Name}_ScoreSheet.pdf`);
-  }
-})();
+      doc.save(`Match_${date}_${team1}_vs_${team2}.pdf`);
+      alert("✅ Match summary PDF downloaded. Closing tab.");
+      setTimeout(() => window.close(), 1500);
+    };
+  });
+}
 </script>
 </body>
 </html>
