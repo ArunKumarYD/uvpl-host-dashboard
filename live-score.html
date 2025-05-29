@@ -127,8 +127,21 @@ function createPlayerControls(team, containerId) {
   });
 }
 
-createPlayerControls(team1, "team1Players");
-createPlayerControls(team2, "team2Players");
+window.onload = () => {
+  createPlayerControls(team1, "team1Players");
+  createPlayerControls(team2, "team2Players");
+
+  // Initialize team score spans
+  const ref1 = db.ref(`points/${gender}/${team1}/points`);
+  ref1.on("value", snap => {
+    document.getElementById("score-team1").textContent = `${snap.val() || 0} pts`;
+  });
+
+  const ref2 = db.ref(`points/${gender}/${team2}/points`);
+  ref2.on("value", snap => {
+    document.getElementById("score-team2").textContent = `${snap.val() || 0} pts`;
+  });
+};
 
 function declareWinner() {
   const winner = document.getElementById("winnerTeam").value;
