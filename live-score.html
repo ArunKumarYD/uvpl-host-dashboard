@@ -1,213 +1,263 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" >
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Live Match – UVPL</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
-  <script src="firebase-config.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>UVPL Live Score</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; padding: 1.5rem; }
-    h1 { text-align: center; color: #4c1d95; }
-    .score-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-    .team-box { flex: 1; text-align: center; }
-    .team-score { font-size: 1.2rem; margin: 0.5rem; }
-    .score-btns button { margin: 0 5px; padding: 0.3rem 1rem; font-size: 1.1rem; }
-    .players-wrapper { display: flex; justify-content: space-around; gap: 1rem; margin: 2rem 0; }
-    .player-column { flex: 1; }
-    .player-column h3 { text-align: center; background: #ede9fe; padding: 0.5rem; border-radius: 6px; }
-    .player-controls { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-top: 1rem; }
-    .player-controls div { display: flex; align-items: center; gap: 0.25rem; }
-    iframe { width: 100%; height: 300px; border: none; margin-top: 1rem; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #1E293B; /* navy bg */
+      color: white;
+      min-height: 100vh;
+      padding: 1rem;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: #2D3748; /* dark card bg */
+      border-radius: 12px;
+      padding: 1.5rem;
+      position: relative;
+    }
+    .company-logo {
+      max-height: 60px;
+      position: absolute;
+      top: 15px;
+      left: 15px;
+    }
+    .team-logo {
+      max-height: 45px;
+      margin-left: 12px;
+    }
+    .score-btn {
+      background: #3B82F6;
+      border: none;
+      border-radius: 4px;
+      padding: 0 10px;
+      font-weight: bold;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.2s ease-in-out;
+    }
+    .score-btn:hover {
+      background: #2563EB;
+    }
+    input[type="number"] {
+      width: 48px;
+      text-align: center;
+      background: #1E293B;
+      color: white;
+      border: 1px solid #4B5563;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    .player-list {
+      max-height: 140px;
+      overflow-y: auto;
+      margin-top: 0.25rem;
+      background: #374151;
+      border-radius: 6px;
+      padding: 0.5rem;
+    }
+    .player-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+      font-size: 0.9rem;
+    }
+    .player-name {
+      flex-grow: 1;
+    }
+    .add-player-btn {
+      margin-top: 0.5rem;
+      background: #10B981;
+      color: white;
+      border: none;
+      padding: 0.25rem 0.75rem;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .add-player-btn:hover {
+      background: #059669;
+    }
+    .header-row th {
+      border-bottom: 2px solid #2563EB;
+      padding-bottom: 6px;
+      font-weight: 700;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1rem;
+    }
+    td, th {
+      text-align: center;
+      padding: 0.5rem;
+      border: 1px solid #4B5563;
+    }
+    .vs-text {
+      font-weight: 700;
+      font-size: 1.3rem;
+      padding: 0 12px;
+      user-select: none;
+    }
+    .match-info {
+      text-align: center;
+      margin-bottom: 1rem;
+      font-weight: 600;
+      font-size: 1.1rem;
+      color: #93C5FD;
+    }
+    .winner-btn {
+      background: #2563EB;
+      padding: 0.7rem 2rem;
+      font-weight: 700;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      color: white;
+      display: block;
+      margin: 0 auto;
+      margin-top: 1rem;
+      user-select: none;
+    }
+    .winner-btn:hover {
+      background: #1E40AF;
+    }
   </style>
 </head>
 <body>
-  <h1>🏐 UVPL - Season 5</h1>
-  <div class="score-header">
-    <div class="team-box">
-      <h2 id="team1Label"></h2>
-      <div class="score-btns">
-        <button onclick="updateTeamScore('team1', 1)">+</button>
-        <span id="score-team1">0 pts</span>
-        <button onclick="updateTeamScore('team1', -1)">-</button>
+  <div class="container" id="scoreCard">
+    <img src="assets/logos/company-logo.png" alt="Company Logo" class="company-logo" />
+
+    <h1 class="text-center text-3xl font-bold mb-4">UVPL Live Score Sheet</h1>
+    <div class="match-info" id="matchInfo">Loading match info...</div>
+
+    <div class="flex justify-between items-center mb-4">
+      <div class="flex items-center" id="team1Container">
+        <span id="team1Name" class="text-xl font-semibold"></span>
+        <img id="team1Logo" src="" alt="Team 1 Logo" class="team-logo" />
+      </div>
+      <div class="vs-text">VS</div>
+      <div class="flex items-center" id="team2Container">
+        <span id="team2Name" class="text-xl font-semibold"></span>
+        <img id="team2Logo" src="" alt="Team 2 Logo" class="team-logo" />
       </div>
     </div>
-    <div class="team-box">
-      <h2 id="team2Label"></h2>
-      <div class="score-btns">
-        <button onclick="updateTeamScore('team2', 1)">+</button>
-        <span id="score-team2">0 pts</span>
-        <button onclick="updateTeamScore('team2', -1)">-</button>
+
+    <table>
+      <thead>
+        <tr class="header-row">
+          <th>Set</th>
+          <th id="team1Header">Team 1</th>
+          <th id="team2Header">Team 2</th>
+        </tr>
+      </thead>
+      <tbody id="setsTableBody">
+        <!-- Sets rows will be generated here -->
+      </tbody>
+      <tfoot>
+        <tr>
+          <th>Total</th>
+          <th id="team1TotalScore">0</th>
+          <th id="team2TotalScore">0</th>
+        </tr>
+      </tfoot>
+    </table>
+
+    <div class="flex justify-between">
+      <div style="width:48%">
+        <h3 class="font-semibold mb-1">Team 1 Players</h3>
+        <div class="player-list" id="team1PlayersList"></div>
+        <input type="text" id="team1NewPlayer" placeholder="Add player name" class="w-full p-1 rounded text-black" />
+        <button class="add-player-btn" onclick="addPlayer('team1')">Add Player</button>
+      </div>
+      <div style="width:48%">
+        <h3 class="font-semibold mb-1">Team 2 Players</h3>
+        <div class="player-list" id="team2PlayersList"></div>
+        <input type="text" id="team2NewPlayer" placeholder="Add player name" class="w-full p-1 rounded text-black" />
+        <button class="add-player-btn" onclick="addPlayer('team2')">Add Player</button>
       </div>
     </div>
+
+    <button class="winner-btn" onclick="generateReport()">Declare Winner & Download Report</button>
   </div>
-  <div class="players-wrapper">
-    <div class="player-column">
-      <h3>Players – <span id="team1PlayersLabel"></span></h3>
-      <div class="player-controls" id="team1Players"></div>
-    </div>
-    <div class="player-column">
-      <h3>Players – <span id="team2PlayersLabel"></span></h3>
-      <div class="player-controls" id="team2Players"></div>
-    </div>
-  </div>
-  <div>
-    <h3>Referees</h3>
-    <input type="text" id="referee1" placeholder="Referee 1" />
-    <input type="text" id="referee2" placeholder="Referee 2" />
-  </div>
-  <div style="margin-top: 1rem;">
-    <select id="winnerTeam"></select>
-    <button onclick="declareWinner()">🏆 Declare Winner</button>
-  </div>
-  <iframe src="https://www.youtube.com/embed/live_stream?channel=UCyZYHc1fNmNMP3eU5YSL1AQ" allowfullscreen></iframe>
 
 <script>
-const db = firebase.database();
-const params = new URLSearchParams(window.location.search);
-const gender = params.get('gender');
-const team1 = params.get('team1');
-const team2 = params.get('team2');
-const date = params.get('date');
-const time = params.get('time');
+  // Globals
+  const totalSets = 3;
+  let team1Scores = Array(totalSets).fill(0);
+  let team2Scores = Array(totalSets).fill(0);
+  let team1Players = [];
+  let team2Players = [];
 
-function updateTeamScore(which, change) {
-  const team = which === 'team1' ? team1 : team2;
-  const scoreSpan = document.getElementById(`score-${which}`);
-  const ref = db.ref(`points/${gender}/${team}/points`);
-  ref.transaction(p => Math.max((p || 0) + change, 0));
-  ref.on("value", snap => {
-    scoreSpan.textContent = `${snap.val() || 0} pts`;
-  });
-}
+  function getLogoURL(teamName) {
+    return `assets/logos/${teamName.toLowerCase().replace(/\s+/g, "-")}.png`;
+  }
 
-function createPlayerControls(team, containerId) {
-  db.ref(`players/${gender}/${team}`).once("value", snap => {
-    const data = snap.val();
-    const container = document.getElementById(containerId);
-    container.innerHTML = "";
-    Object.entries(data || {}).forEach(([key, player]) => {
-      const div = document.createElement("div");
-      const span = document.createElement("span");
-      span.id = `score-${key}`;
-      span.textContent = `${player.name} (0 pts)`;
+  function updateMatchInfo() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const team1 = urlParams.get("team1") || "Team 1";
+    const team2 = urlParams.get("team2") || "Team 2";
+    const date = urlParams.get("date") || "Date";
+    const time = urlParams.get("time") || "Time";
 
-      const btnPlus = document.createElement("button");
-      btnPlus.textContent = "+";
-      btnPlus.onclick = () => {
-        db.ref(`players/${gender}/${team}/${key}/points`).transaction(p => (p || 0) + 1);
-      };
+    document.getElementById("team1Name").innerText = team1;
+    document.getElementById("team2Name").innerText = team2;
+    document.getElementById("team1Header").innerText = team1;
+    document.getElementById("team2Header").innerText = team2;
 
-      const btnMinus = document.createElement("button");
-      btnMinus.textContent = "-";
-      btnMinus.onclick = () => {
-        db.ref(`players/${gender}/${team}/${key}/points`).transaction(p => Math.max((p || 0) - 1, 0));
-      };
+    document.getElementById("team1Logo").src = getLogoURL(team1);
+    document.getElementById("team2Logo").src = getLogoURL(team2);
 
-      db.ref(`players/${gender}/${team}/${key}/points`).on("value", snap => {
-        span.textContent = `${player.name} (${snap.val() || 0} pts)`;
-      });
+    document.getElementById("matchInfo").innerText = `Match Date: ${date}, Time: ${time}`;
+  }
 
-      div.appendChild(span);
-      div.appendChild(btnPlus);
-      div.appendChild(btnMinus);
-      container.appendChild(div);
-    });
-  });
-}
+  function createSetsTable() {
+    const tbody = document.getElementById("setsTableBody");
+    tbody.innerHTML = "";
 
-window.onload = () => {
-  document.getElementById("team1Label").textContent = team1;
-  document.getElementById("team2Label").textContent = team2;
-  document.getElementById("team1PlayersLabel").textContent = team1;
-  document.getElementById("team2PlayersLabel").textContent = team2;
+    for(let i=0; i<totalSets; i++) {
+      const tr = document.createElement("tr");
 
-  const winnerDropdown = document.getElementById("winnerTeam");
-  winnerDropdown.innerHTML = `
-    <option value="${team1}">${team1}</option>
-    <option value="${team2}">${team2}</option>
-  `;
-  createPlayerControls(team1, "team1Players");
-  createPlayerControls(team2, "team2Players");
+      const setTd = document.createElement("td");
+      setTd.innerText = i + 1;
+      tr.appendChild(setTd);
 
-  const ref1 = db.ref(`points/${gender}/${team1}/points`);
-  ref1.on("value", snap => {
-    document.getElementById("score-team1").textContent = `${snap.val() || 0} pts`;
-  });
+      // Team 1 score cell with +/- buttons and score display input
+      const team1Td = document.createElement("td");
+      const team1DecBtn = document.createElement("button");
+      team1DecBtn.className = "score-btn";
+      team1DecBtn.innerText = "–";
+      team1DecBtn.onclick = () => updateScore('team1', i, -1);
+      const team1ScoreInput = document.createElement("input");
+      team1ScoreInput.type = "number";
+      team1ScoreInput.min = 0;
+      team1ScoreInput.value = team1Scores[i];
+      team1ScoreInput.oninput = (e) => updateScoreManual('team1', i, e.target.value);
+      const team1IncBtn = document.createElement("button");
+      team1IncBtn.className = "score-btn";
+      team1IncBtn.innerText = "+";
+      team1IncBtn.onclick = () => updateScore('team1', i, 1);
 
-  const ref2 = db.ref(`points/${gender}/${team2}/points`);
-  ref2.on("value", snap => {
-    document.getElementById("score-team2").textContent = `${snap.val() || 0} pts`;
-  });
-};
+      team1Td.appendChild(team1DecBtn);
+      team1Td.appendChild(team1ScoreInput);
+      team1Td.appendChild(team1IncBtn);
+      tr.appendChild(team1Td);
 
-function declareWinner() {
-  const winner = document.getElementById("winnerTeam").value;
-  const loser = winner === team1 ? team2 : team1;
-  const referee = `${document.getElementById("referee1").value}, ${document.getElementById("referee2").value}`;
-
-  db.ref(`points/${gender}/${winner}`).update({ won: firebase.database.ServerValue.increment(1), played: firebase.database.ServerValue.increment(1), points: firebase.database.ServerValue.increment(2) });
-  db.ref(`points/${gender}/${loser}`).update({ lost: firebase.database.ServerValue.increment(1), played: firebase.database.ServerValue.increment(1) });
-  db.ref(`schedule/${date}/${time}`).update({ status: "Completed", winner, referee });
-
-  generateMatchSummary(winner, referee);
-}
-
-function generateMatchSummary(winner, referee) {
-  const summary = [
-    `United Volleyball Premier League - Season 5`,
-    `Match: ${team1} vs ${team2}`,
-    `Date: ${date} at ${time}`,
-    `Category: ${gender}`,
-    `Referees: ${referee}`,
-    `Winner: ${winner}`
-  ];
-
-  const scorePromises = [];
-  scorePromises.push(db.ref(`points/${gender}/${team1}/points`).once("value").then(snap => summary.push(`${team1} Score: ${snap.val() || 0}`)));
-  scorePromises.push(db.ref(`points/${gender}/${team2}/points`).once("value").then(snap => summary.push(`${team2} Score: ${snap.val() || 0}`)));
-
-  [team1, team2].forEach(team => {
-    scorePromises.push(db.ref(`players/${gender}/${team}`).once("value").then(snap => {
-      const players = snap.val();
-      summary.push(`${team} Players:`);
-      Object.values(players || {}).forEach(p => summary.push(`${p.name}: ${p.points || 0} pts`));
-    }));
-  });
-
-  Promise.all(scorePromises).then(() => {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.setFontSize(14);
-    doc.setFontSize(30);
-    doc.setTextColor(200, 200, 200);
-    doc.text("UVPL - 5", 105, 150, { align: "center", angle: 45 });
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(14);
-
-    const logo = new Image();
-    logo.src = "https://arunkumaryd.github.io/uvpl-host-dashboard/logo.png";
-    logo.onload = () => {
-      doc.addImage(logo, 'PNG', 150, 10, 40, 20);
-
-      const now = new Date();
-      const footer = `Generated on: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
-      doc.setFontSize(10);
-      doc.text(footer, 10, 290);
-
-      const lines = doc.splitTextToSize(summary.join("\n"), 180);
-      doc.setFontSize(14);
-      doc.text(lines, 10, 20);
-
-      doc.save(`Match_${date}_${team1}_vs_${team2}.pdf`);
-      alert("✅ Match summary PDF downloaded. Closing tab.");
-      setTimeout(() => window.close(), 1500);
-    };
-  });
-}
-</script>
-</body>
-</html>
+      // Team 2 score cell with +/- buttons and score display input
+      const team2Td = document.createElement("td");
+      const team2DecBtn = document.createElement("button");
+      team2DecBtn.className = "score-btn";
+      team2DecBtn.innerText = "–";
+      team2DecBtn.onclick = () => updateScore('team2', i, -1);
+      const team2ScoreInput = document.createElement("input");
+      team2ScoreInput.type = "number";
+      team2ScoreInput.min = 0;
+      team2ScoreInput.value = team2Scores[i];
+      team2ScoreInput.oninput = (e) =>
