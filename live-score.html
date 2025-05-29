@@ -1,169 +1,361 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>UVPL Live Score Sheet</title>
-  <link rel="stylesheet" href="styles.css" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <style>
-    body {
-      background: url('assets/bg-watermark.png') no-repeat center center fixed;
-      background-size: cover;
-    }
-    .score-btn { font-size: 1.2rem; margin: 0 4px; cursor: pointer; }
-    .logo { height: 80px; }
-    #top-header { display: flex; justify-content: space-between; align-items: center; padding: 10px; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>UVPL Live Score Sheet</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
+  header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  header img { height: 60px; }
+  h1 { margin: 0; font-size: 24px; color: #333; }
+  .team-section { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; background: #fff; }
+  .team-header { font-weight: bold; font-size: 20px; margin-bottom: 10px; display: flex; align-items: center; }
+  .team-logo { height: 40px; margin-right: 10px; }
+  .scoreboard { display: flex; justify-content: space-around; margin-bottom: 15px; }
+  .scoreboard div { font-size: 18px; }
+  .players-list { max-height: 200px; overflow-y: auto; }
+  .player-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+  button { margin-left: 5px; }
+  #sets-section { margin-top: 20px; }
+  .set-result { margin-bottom: 10px; }
+  #declare-winner-btn { margin-top: 20px; padding: 10px 20px; font-size: 18px; }
+  #pdf-section { margin-top: 30px; border-top: 1px solid #ccc; padding-top: 20px; }
+  label { display: block; margin-bottom: 5px; font-weight: bold; }
+  input[type="text"] { width: 300px; padding: 5px; margin-bottom: 15px; }
+  canvas#watermark { position: fixed; top: 0; left: 0; opacity: 0.05; pointer-events: none; z-index: -1; }
+  .signature-input { border: 1px solid #aaa; width: 300px; height: 80px; margin-bottom: 10px; }
+</style>
 </head>
 <body>
-  <div id="top-header">
-    <img src="assets/logos/company-logo.png" class="logo" alt="Company Logo">
-    <h1>UVPL - 5 LIVE SCORE SHEET</h1>
-    <div>
-      <button onclick="downloadPDF()">Declare Winner & Download PDF</button>
-    </div>
+
+<canvas id="watermark" width="800" height="600"></canvas>
+
+<header>
+  <img src="assets/logos/company-logo.png" alt="Company Logo" id="company-logo" />
+  <h1>UVPL Live Score Sheet</h1>
+  <img src="" alt="Team 2 Logo" id="team2-logo" class="team-logo" />
+</header>
+
+<div class="team-section" id="team1-section">
+  <div class="team-header">
+    <img src="" alt="Team 1 Logo" id="team1-logo" class="team-logo" />
+    <span id="team1-name">Team 1</span>
   </div>
-
-  <div id="match-info">
-    <h2 id="match-title">Loading match info...</h2>
+  <div class="scoreboard">
+    <div>Sets Won: <span id="team1-sets-won">0</span></div>
+    <div>Current Set Score: <span id="team1-set-score">0</span></div>
+    <div>Total Points: <span id="team1-total-points">0</span></div>
   </div>
+  <div class="players-list" id="team1-players"></div>
+</div>
 
-  <div style="display:flex; justify-content:space-around; align-items:center;">
-    <img id="team1-logo" class="logo" src="" alt="Team 1 Logo" />
-    <div>
-      <table border="1">
-        <thead>
-          <tr><th>Set</th><th id="team1-name">Team 1</th><th id="team2-name">Team 2</th></tr>
-        </thead>
-        <tbody id="set-scores"></tbody>
-        <tfoot>
-          <tr><th>Total</th><td id="team1-total">0</td><td id="team2-total">0</td></tr>
-        </tfoot>
-      </table>
-    </div>
-    <img id="team2-logo" class="logo" src="" alt="Team 2 Logo" />
+<div class="team-section" id="team2-section">
+  <div class="team-header">
+    <img src="" alt="Team 2 Logo" id="team2-logo2" class="team-logo" />
+    <span id="team2-name">Team 2</span>
   </div>
-
-  <div style="display: flex; justify-content: space-around;">
-    <div>
-      <h3 id="team1-player-title">Team 1 Players</h3>
-      <ul id="team1-players"></ul>
-    </div>
-    <div>
-      <h3 id="team2-player-title">Team 2 Players</h3>
-      <ul id="team2-players"></ul>
-    </div>
+  <div class="scoreboard">
+    <div>Sets Won: <span id="team2-sets-won">0</span></div>
+    <div>Current Set Score: <span id="team2-set-score">0</span></div>
+    <div>Total Points: <span id="team2-total-points">0</span></div>
   </div>
+  <div class="players-list" id="team2-players"></div>
+</div>
 
-  <div style="text-align:center; padding:20px;">
-    <label>Referee Signature: <input type="text" id="ref-sign" placeholder="Enter referee name" /></label>
-  </div>
+<div id="sets-section">
+  <h3>Sets Results</h3>
+  <div id="sets-results-container"></div>
+  <button id="declare-set-winner-btn">Declare Set Winner</button>
+</div>
 
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    const gender = params.get('gender') || 'Men';
-    const team1 = params.get('team1') || 'Team 1';
-    const team2 = params.get('team2') || 'Team 2';
-    const date = params.get('date') || '';
-    const time = params.get('time') || '';
+<button id="declare-match-winner-btn" style="display:none;">Declare Match Winner & Download PDF</button>
 
-    document.getElementById('match-title').innerText = `${team1} vs ${team2} - ${date} ${time}`;
-    document.getElementById('team1-name').innerText = team1;
-    document.getElementById('team2-name').innerText = team2;
-    document.getElementById('team1-player-title').innerText = team1 + ' Players';
-    document.getElementById('team2-player-title').innerText = team2 + ' Players';
+<div id="pdf-section" style="display:none;">
+  <h3>Referee Signature & Reference</h3>
+  <label for="referee-name">Referee Name:</label>
+  <input type="text" id="referee-name" placeholder="Enter referee name" />
+  
+  <label for="referee-sign">Referee Signature (Type your name):</label>
+  <input type="text" id="referee-sign" placeholder="Type your signature" class="signature-input" />
+  
+  <button id="download-pdf-btn">Download PDF Report</button>
+</div>
 
-    document.getElementById('team1-logo').src = `assets/logos/${team1.replace(/\s+/g, '-')}.png`;
-    document.getElementById('team2-logo').src = `assets/logos/${team2.replace(/\s+/g, '-')}.png`;
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  // Data - replace logos path with your github assets folder
+  const logosBasePath = "assets/logos/";
 
-    let team1Total = 0, team2Total = 0;
-    const setScores = document.getElementById('set-scores');
-    const maxSets = 3;
-    const sets = Array.from({length: maxSets}, (_, i) => ({ team1: 0, team2: 0 }));
+  // Parse URL params
+  const urlParams = new URLSearchParams(window.location.search);
+  const gender = urlParams.get("gender") || "Men";
+  const team1Name = urlParams.get("team1") || "United Challengers";
+  const team2Name = urlParams.get("team2") || "UC Twistter";
 
-    function renderScores() {
-      setScores.innerHTML = '';
-      sets.forEach((set, i) => {
-        setScores.innerHTML += `
-          <tr>
-            <td>Set ${i+1}</td>
-            <td><button onclick="updateSet(${i}, 'team1', -1)">-</button> ${set.team1} <button onclick="updateSet(${i}, 'team1', 1)">+</button></td>
-            <td><button onclick="updateSet(${i}, 'team2', -1)">-</button> ${set.team2} <button onclick="updateSet(${i}, 'team2', 1)">+</button></td>
-          </tr>
-        `;
-      });
-      team1Total = sets.reduce((a,s)=>a+s.team1,0);
-      team2Total = sets.reduce((a,s)=>a+s.team2,0);
-      document.getElementById('team1-total').innerText = team1Total;
-      document.getElementById('team2-total').innerText = team2Total;
+  // Team logos filenames (change as needed)
+  const teamLogos = {
+    "United Challengers": "united-challengers.png",
+    "UC Twistter": "uc-twistter.png",
+    "Azraq Astronuts": "azraq-astronuts.png",
+    "IJC Ninjas": "ijc-ninjas.png"
+  };
+
+  // Sample players (replace with your host data load logic)
+  const playersData = {
+    "Men": {
+      "United Challengers": ["Rajesh", "Suresh", "Mahesh"],
+      "UC Twistter": ["Arun", "Kumar", "Dinesh"],
+      "Azraq Astronuts": ["Vijay", "Ramesh", "Naveen"],
+      "IJC Ninjas": ["Ajay", "Manoj", "Karthik"]
+    },
+    "Women": {
+      "United Challengers": ["Anita", "Preethi", "Divya"],
+      "UC Twistter": ["Lakshmi", "Meena", "Sonal"],
+      "Azraq Astronuts": ["Radha", "Kavya", "Nisha"],
+      "IJC Ninjas": ["Neha", "Pooja", "Ritu"]
     }
-    function updateSet(index, team, delta) {
-      sets[index][team] = Math.max(0, sets[index][team] + delta);
-      renderScores();
+  };
+
+  // Scores and state variables
+  let currentSet = 1;
+  const maxSets = 3;
+  const setsResults = [];
+  const teamScores = {
+    team1: 0,
+    team2: 0
+  };
+  const setsWon = {
+    team1: 0,
+    team2: 0
+  };
+
+  // Track individual player scores per team per set
+  const playerScores = {
+    team1: {},
+    team2: {}
+  };
+
+  // Current set individual player points
+  let currentSetPlayerPoints = {
+    team1: {},
+    team2: {}
+  };
+
+  // Update team and player scores display
+  function updateScores() {
+    document.getElementById("team1-set-score").textContent = teamScores.team1;
+    document.getElementById("team2-set-score").textContent = teamScores.team2;
+    document.getElementById("team1-total-points").textContent = Object.values(playerScores.team1).reduce((a,b) => a+b,0);
+    document.getElementById("team2-total-points").textContent = Object.values(playerScores.team2).reduce((a,b) => a+b,0);
+    document.getElementById("team1-sets-won").textContent = setsWon.team1;
+    document.getElementById("team2-sets-won").textContent = setsWon.team2;
+  }
+
+  // Initialize team players list with +/- buttons
+  function loadPlayers(teamKey, teamName) {
+    const container = document.getElementById(teamKey + "-players");
+    container.innerHTML = "";
+    const players = playersData[gender][teamName] || [];
+    playerScores[teamKey] = {};  // initialize player scores
+    currentSetPlayerPoints[teamKey] = {};
+
+    players.forEach(player => {
+      playerScores[teamKey][player] = 0;
+      currentSetPlayerPoints[teamKey][player] = 0;
+
+      const row = document.createElement("div");
+      row.classList.add("player-row");
+      row.innerHTML = `
+        <span>${player}</span>
+        <div>
+          <button onclick="addPoint('${teamKey}', '${player}')">+1</button>
+          <button onclick="removePoint('${teamKey}', '${player}')">-1</button>
+          <span id="${teamKey}-${player}-score">0</span>
+        </div>
+      `;
+      container.appendChild(row);
+    });
+  }
+
+  function addPoint(teamKey, player) {
+    currentSetPlayerPoints[teamKey][player]++;
+    playerScores[teamKey][player]++;
+    teamScores[teamKey]++;
+    updateScores();
+    document.getElementById(`${teamKey}-${player}-score`).textContent = currentSetPlayerPoints[teamKey][player];
+  }
+
+  function removePoint(teamKey, player) {
+    if(currentSetPlayerPoints[teamKey][player] > 0) {
+      currentSetPlayerPoints[teamKey][player]--;
+      playerScores[teamKey][player]--;
+      teamScores[teamKey]--;
+      updateScores();
+      document.getElementById(`${teamKey}-${player}-score`).textContent = currentSetPlayerPoints[teamKey][player];
     }
-    renderScores();
+  }
 
-    async function loadPlayers(team, elementId) {
-      const path = `assets/players/${gender}/${team.replace(/\s+/g, '-')}.json`;
-      try {
-        const res = await fetch(path);
-        const players = await res.json();
-        const list = document.getElementById(elementId);
-        players.forEach(p => {
-          const li = document.createElement('li');
-          li.innerHTML = `${p.name} <button onclick="updatePlayerScore(this, 1)">+</button> <button onclick="updatePlayerScore(this, -1)">-</button> <span class="score">0</span>`;
-          list.appendChild(li);
-        });
-      } catch (e) {
-        console.error('Failed to load players for', team);
-      }
+  // Declare set winner
+  document.getElementById("declare-set-winner-btn").addEventListener("click", () => {
+    if(teamScores.team1 === teamScores.team2) {
+      alert("Set cannot be declared winner when scores are tied!");
+      return;
     }
+    const winner = teamScores.team1 > teamScores.team2 ? team1Name : team2Name;
+    setsWon[teamScores.team1 > teamScores.team2 ? 'team1' : 'team2']++;
 
-    function updatePlayerScore(btn, delta) {
-      const scoreSpan = btn.parentElement.querySelector('.score');
-      let score = parseInt(scoreSpan.innerText) + delta;
-      scoreSpan.innerText = Math.max(0, score);
+    // Save set results
+    setsResults.push({
+      setNumber: currentSet,
+      team1Points: teamScores.team1,
+      team2Points: teamScores.team2,
+      winner: winner
+    });
+
+    addSetResultUI(currentSet, teamScores.team1, teamScores.team2, winner);
+
+    // Reset for next set if match not over
+    if(setsWon.team1 === 2 || setsWon.team2 === 2 || currentSet === maxSets) {
+      endMatch();
+    } else {
+      currentSet++;
+      resetSetScores();
     }
+  });
 
-    loadPlayers(team1, 'team1-players');
-    loadPlayers(team2, 'team2-players');
+  function addSetResultUI(setNum, t1Points, t2Points, winner) {
+    const container = document.getElementById("sets-results-container");
+    const div = document.createElement("div");
+    div.className = "set-result";
+    div.textContent = `Set ${setNum}: ${team1Name} ${t1Points} - ${t2Points} ${team2Name} | Winner: ${winner}`;
+    container.appendChild(div);
+  }
 
-    async function downloadPDF() {
-      const {{ jsPDF }} = window.jspdf;
-      const doc = new jsPDF();
-      doc.setFontSize(18);
-      doc.text(`UVPL Live Score Sheet`, 20, 20);
+  function resetSetScores() {
+    teamScores.team1 = 0;
+    teamScores.team2 = 0;
+    currentSetPlayerPoints.team1 = {};
+    currentSetPlayerPoints.team2 = {};
+    // Reset player scores for new set
+    for(let player in playerScores.team1) {
+      currentSetPlayerPoints.team1[player] = 0;
+      document.getElementById(`team1-${player}-score`).textContent = "0";
+    }
+    for(let player in playerScores.team2) {
+      currentSetPlayerPoints.team2[player] = 0;
+      document.getElementById(`team2-${player}-score`).textContent = "0";
+    }
+    updateScores();
+  }
+
+  // End match logic
+  function endMatch() {
+    alert(`Match over! Winner: ${setsWon.team1 > setsWon.team2 ? team1Name : team2Name}`);
+    document.getElementById("declare-set-winner-btn").style.display = "none";
+    document.getElementById("declare-match-winner-btn").style.display = "inline-block";
+    document.getElementById("pdf-section").style.display = "block";
+  }
+
+  // Declare match winner and generate PDF
+  document.getElementById("declare-match-winner-btn").addEventListener("click", () => {
+    generatePDF();
+  });
+
+  // Set team names and logos on page load
+  function setupTeams() {
+    document.getElementById("team1-name").textContent = team1Name;
+    document.getElementById("team2-name").textContent = team2Name;
+    document.getElementById("team1-logo").src = logosBasePath + (teamLogos[team1Name] || "default.png");
+    document.getElementById("team2-logo").src = logosBasePath + (teamLogos[team2Name] || "default.png");
+    document.getElementById("team2-logo2").src = logosBasePath + (teamLogos[team2Name] || "default.png");
+
+    loadPlayers("team1", team1Name);
+    loadPlayers("team2", team2Name);
+    updateScores();
+  }
+
+  // PDF generation using jsPDF
+  async function generatePDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // Title
+    doc.setFontSize(18);
+    doc.text("UVPL Match Report", 14, 20);
+
+    // Teams
+    doc.setFontSize(14);
+    doc.text(`Team 1: ${team1Name}`, 14, 30);
+    doc.text(`Team 2: ${team2Name}`, 14, 38);
+
+    // Sets Results Table
+    doc.setFontSize(12);
+    let startY = 48;
+    doc.text("Sets Results:", 14, startY);
+    startY += 6;
+    setsResults.forEach(set => {
+      doc.text(`Set ${set.setNumber}: ${team1Name} ${set.team1Points} - ${set.team2Points} ${team2Name} | Winner: ${set.winner}`, 14, startY);
+      startY += 8;
+    });
+
+    // Player scores
+    function addPlayerScores(teamKey, x, y) {
       doc.setFontSize(12);
-      doc.text(`Match: ${team1} vs ${team2}`, 20, 30);
-      doc.text(`Date: ${date} Time: ${time}`, 20, 38);
-      doc.text(`Referee: ${document.getElementById('ref-sign').value}`, 20, 46);
-
-      let y = 60;
-      sets.forEach((set, i) => {
-        doc.text(`Set ${i+1}: ${team1} ${set.team1} - ${team2} ${set.team2}`, 20, y);
-        y += 8;
-      });
-      doc.text(`Total: ${team1} ${team1Total} - ${team2} ${team2Total}`, 20, y);
-
-      y += 10;
-      doc.text(`${team1} Player Scores:`, 20, y);
-      document.querySelectorAll('#team1-players li').forEach((li, i) => {
-        const name = li.innerText.split('+')[0].trim();
-        const score = li.querySelector('.score').innerText;
-        doc.text(`${name}: ${score}`, 25, y += 8);
-      });
-
-      y += 10;
-      doc.text(`${team2} Player Scores:`, 20, y);
-      document.querySelectorAll('#team2-players li').forEach((li, i) => {
-        const name = li.innerText.split('+')[0].trim();
-        const score = li.querySelector('.score').innerText;
-        doc.text(`${name}: ${score}`, 25, y += 8);
-      });
-
-      doc.save(`UVPL_${team1}_vs_${team2}.pdf`);
+      doc.text(teamKey === "team1" ? `Players - ${team1Name}` : `Players - ${team2Name}`, x, y);
+      y += 6;
+      for (const player in playerScores[teamKey]) {
+        doc.text(`${player}: ${playerScores[teamKey][player]}`, x + 10, y);
+        y += 6;
+      }
+      return y;
     }
-  </script>
+
+    let yPos = startY + 10;
+    yPos = addPlayerScores("team1", 14, yPos);
+    yPos = addPlayerScores("team2", 110, startY + 10);
+
+    // Referee name & signature
+    const refereeName = document.getElementById("referee-name").value.trim();
+    const refereeSign = document.getElementById("referee-sign").value.trim();
+
+    if(!refereeName || !refereeSign) {
+      alert("Please enter referee name and signature before downloading PDF.");
+      return;
+    }
+
+    doc.setFontSize(14);
+    doc.text("Referee Details:", 14, yPos + 10);
+    doc.setFontSize(12);
+    doc.text(`Name: ${refereeName}`, 14, yPos + 18);
+    doc.text(`Signature: ${refereeSign}`, 14, yPos + 26);
+
+    // Reference name input as footer
+    const refName = prompt("Enter Reference Name for PDF footer:", "");
+    if(refName) {
+      doc.setFontSize(10);
+      doc.text(`Reference: ${refName}`, 14, 290);
+    }
+
+    // Save PDF
+    doc.save(`UVPL_Match_Report_${team1Name}_vs_${team2Name}.pdf`);
+  }
+
+  // Draw watermark canvas background
+  function drawWatermark() {
+    const canvas = document.getElementById('watermark');
+    const ctx = canvas.getContext('2d');
+    ctx.font = "48px Arial";
+    ctx.fillStyle = "rgba(200,200,200,0.1)";
+    ctx.rotate(-0.3);
+    ctx.fillText("UVPL - Live Score Sheet", 50, 250);
+  }
+
+  window.onload = () => {
+    setupTeams();
+    drawWatermark();
+  };
+</script>
+
 </body>
 </html>
