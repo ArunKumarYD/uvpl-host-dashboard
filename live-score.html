@@ -60,6 +60,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
     const db = firebase.database();
     const params = new URLSearchParams(window.location.search);
@@ -199,12 +200,15 @@ ${team} Players:`);
   Promise.all(scorePromises).then(() => {
     const blob = new Blob([summary.join("
 ")], { type: "text/plain" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `Match_${date}_${team1}_vs_${team2}.txt`;
-    a.click();
-    alert("✅ Match summary downloaded. Closing tab.");
-    setTimeout(() => window.close(), 1500);
+    const summaryText = summary.join("
+");
+const doc = new jsPDF();
+doc.setFontSize(14);
+const lines = doc.splitTextToSize(summaryText, 180);
+doc.text(lines, 10, 10);
+doc.save(`Match_${date}_${team1}_vs_${team2}.pdf`);
+alert("✅ Match summary PDF downloaded. Closing tab.");
+setTimeout(() => window.close(), 1500);
   });
 }
 </script>
