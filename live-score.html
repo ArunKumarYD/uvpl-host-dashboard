@@ -201,8 +201,7 @@ logo.onload = () => {
   doc.setFontSize(10);
   doc.text(footer, 10, 290);
 
-  const lines = doc.splitTextToSize(summary.join("
-"), 180);
+  const lines = doc.splitTextToSize(summary.join("\n"), 180);
   doc.setFontSize(14);
   doc.text(lines, 10, 20);
 
