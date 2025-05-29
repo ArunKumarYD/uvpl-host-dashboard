@@ -1,27 +1,150 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Live Match – UVPL</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; padding: 1.5rem; }
-    h1 { text-align: center; color: #4c1d95; }
-    .score-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-    .team-box { flex: 1; text-align: center; }
-    .team-score { font-size: 1.2rem; margin: 0.5rem; }
-    .score-btns button { margin: 0 5px; padding: 0.3rem 1rem; font-size: 1.1rem; }
-    .players-wrapper { display: flex; justify-content: space-around; gap: 1rem; margin: 2rem 0; }
-    .player-column { flex: 1; }
-    .player-column h3 { text-align: center; background: #ede9fe; padding: 0.5rem; border-radius: 6px; }
-    .player-controls { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-top: 1rem; }
-    .player-controls div { display: flex; align-items: center; gap: 0.25rem; }
-    iframe { width: 100%; height: 300px; border: none; margin-top: 1rem; }
+    /* Background gradient */
+    body {
+      font-family: Arial, sans-serif;
+      padding: 1.5rem;
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+      color: white;
+      min-height: 100vh;
+    }
+    h1 {
+      text-align: center;
+      color: #ffecb3;
+      margin-bottom: 1rem;
+    }
+    .score-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      background: rgba(255 255 255 / 0.15);
+      border-radius: 12px;
+      padding: 1rem;
+    }
+    .team-box {
+      flex: 1;
+      text-align: center;
+    }
+    .team-box h2 {
+      color: #fff9c4;
+      margin-bottom: 0.5rem;
+    }
+    .score-btns button {
+      margin: 0 5px;
+      padding: 0.3rem 1rem;
+      font-size: 1.1rem;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      background-color: #ffca28;
+      color: #1a237e;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+    .score-btns button:hover {
+      background-color: #f57f17;
+    }
+    .score-btns span {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #fff;
+    }
+    .players-wrapper {
+      display: flex;
+      justify-content: space-around;
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+    .player-column {
+      flex: 1;
+      background: rgba(255 255 255 / 0.15);
+      padding: 1rem;
+      border-radius: 12px;
+    }
+    .player-column h3 {
+      text-align: center;
+      background: #ede9fe;
+      padding: 0.5rem;
+      border-radius: 6px;
+      color: #1a237e;
+      margin-bottom: 1rem;
+    }
+    .player-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .player-controls div {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      background: white;
+      border-radius: 6px;
+      padding: 0.2rem 0.5rem;
+      color: #1a237e;
+      font-weight: 600;
+    }
+    .player-controls button {
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 0 0.5rem;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .player-controls button:hover {
+      background-color: #0d47a1;
+    }
+    input[type="text"] {
+      width: 200px;
+      margin-right: 10px;
+      padding: 0.5rem;
+      border-radius: 6px;
+      border: none;
+      font-size: 1rem;
+    }
+    select {
+      padding: 0.5rem;
+      border-radius: 6px;
+      border: none;
+      font-size: 1rem;
+      margin-right: 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button#declareWinnerBtn {
+      background-color: #43a047;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 0.6rem 1.2rem;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+    button#declareWinnerBtn:hover {
+      background-color: #2e7d32;
+    }
+    iframe {
+      width: 100%;
+      height: 300px;
+      border: none;
+      margin-top: 1rem;
+      border-radius: 12px;
+    }
   </style>
 </head>
 <body>
@@ -44,6 +167,7 @@
       </div>
     </div>
   </div>
+
   <div class="players-wrapper">
     <div class="player-column">
       <h3>Players – <span id="team1PlayersLabel"></span></h3>
@@ -54,160 +178,123 @@
       <div class="player-controls" id="team2Players"></div>
     </div>
   </div>
+
   <div>
     <h3>Referees</h3>
     <input type="text" id="referee1" placeholder="Referee 1" />
     <input type="text" id="referee2" placeholder="Referee 2" />
   </div>
+
   <div style="margin-top: 1rem;">
     <select id="winnerTeam"></select>
-    <button onclick="declareWinner()">🏆 Declare Winner</button>
+    <button id="declareWinnerBtn" onclick="declareWinner()">🏆 Declare Winner</button>
   </div>
+
   <iframe src="https://www.youtube.com/embed/live_stream?channel=UCyZYHc1fNmNMP3eU5YSL1AQ" allowfullscreen></iframe>
 
 <script>
-const db = firebase.database();
-const params = new URLSearchParams(window.location.search);
-const gender = params.get('gender');
-const team1 = params.get('team1');
-const team2 = params.get('team2');
-const date = params.get('date');
-const time = params.get('time');
+  const db = firebase.database();
+  const params = new URLSearchParams(window.location.search);
+  const gender = params.get('gender');
+  const team1 = params.get('team1');
+  const team2 = params.get('team2');
+  const date = params.get('date');
+  const time = params.get('time');
 
-function updateTeamScore(which, change) {
-  const team = which === 'team1' ? team1 : team2;
-  const scoreSpan = document.getElementById(`score-${which}`);
-  const ref = db.ref(`points/${gender}/${team}/points`);
-  ref.transaction(p => Math.max((p || 0) + change, 0));
-  ref.on("value", snap => {
-    scoreSpan.textContent = `${snap.val() || 0} pts`;
-  });
-}
+  function updateTeamScore(which, change) {
+    const team = which === 'team1' ? team1 : team2;
+    const scoreSpan = document.getElementById(`score-${which}`);
+    const ref = db.ref(`points/${gender}/${team}/points`);
+    ref.transaction(p => Math.max((p || 0) + change, 0));
+  }
 
-function createPlayerControls(team, containerId) {
-  db.ref(`players/${gender}/${team}`).once("value", snap => {
-    const data = snap.val();
-    const container = document.getElementById(containerId);
-    container.innerHTML = "";
-    Object.entries(data || {}).forEach(([key, player]) => {
-      const div = document.createElement("div");
-      const span = document.createElement("span");
-      span.id = `score-${key}`;
-      span.textContent = `${player.name} (0 pts)`;
+  function createPlayerControls(team, containerId) {
+    db.ref(`players/${gender}/${team}`).once("value", snap => {
+      const data = snap.val();
+      const container = document.getElementById(containerId);
+      container.innerHTML = "";
+      Object.entries(data || {}).forEach(([key, player]) => {
+        const div = document.createElement("div");
+        const span = document.createElement("span");
+        span.id = `score-${key}`;
+        span.textContent = `${player.name} (0 pts)`;
 
-      const btnPlus = document.createElement("button");
-      btnPlus.textContent = "+";
-      btnPlus.onclick = () => {
-        db.ref(`players/${gender}/${team}/${key}/points`).transaction(p => (p || 0) + 1);
-      };
+        const btnPlus = document.createElement("button");
+        btnPlus.textContent = "+";
+        btnPlus.onclick = () => {
+          db.ref(`players/${gender}/${team}/${key}/points`).transaction(p => (p || 0) + 1);
+        };
 
-      const btnMinus = document.createElement("button");
-      btnMinus.textContent = "-";
-      btnMinus.onclick = () => {
-        db.ref(`players/${gender}/${team}/${key}/points`).transaction(p => Math.max((p || 0) - 1, 0));
-      };
+        const btnMinus = document.createElement("button");
+        btnMinus.textContent = "-";
+        btnMinus.onclick = () => {
+          db.ref(`players/${gender}/${team}/${key}/points`).transaction(p => Math.max((p || 0) - 1, 0));
+        };
 
-      db.ref(`players/${gender}/${team}/${key}/points`).on("value", snap => {
-        span.textContent = `${player.name} (${snap.val() || 0} pts)`;
+        db.ref(`players/${gender}/${team}/${key}/points`).on("value", snap => {
+          span.textContent = `${player.name} (${snap.val() || 0} pts)`;
+        });
+
+        div.appendChild(span);
+        div.appendChild(btnPlus);
+        div.appendChild(btnMinus);
+        container.appendChild(div);
       });
-
-      div.appendChild(span);
-      div.appendChild(btnPlus);
-      div.appendChild(btnMinus);
-      container.appendChild(div);
     });
-  });
-}
+  }
 
-window.onload = () => {
-  document.getElementById("team1Label").textContent = team1;
-  document.getElementById("team2Label").textContent = team2;
-  document.getElementById("team1PlayersLabel").textContent = team1;
-  document.getElementById("team2PlayersLabel").textContent = team2;
+  window.onload = () => {
+    document.getElementById("team1Label").textContent = team1;
+    document.getElementById("team2Label").textContent = team2;
+    document.getElementById("team1PlayersLabel").textContent = team1;
+    document.getElementById("team2PlayersLabel").textContent = team2;
 
-  const winnerDropdown = document.getElementById("winnerTeam");
-  winnerDropdown.innerHTML = `
-    <option value="${team1}">${team1}</option>
-    <option value="${team2}">${team2}</option>
-  `;
-  createPlayerControls(team1, "team1Players");
-  createPlayerControls(team2, "team2Players");
+    const winnerDropdown = document.getElementById("winnerTeam");
+    winnerDropdown.innerHTML = `
+      <option value="${team1}">${team1}</option>
+      <option value="${team2}">${team2}</option>
+    `;
 
-  const ref1 = db.ref(`points/${gender}/${team1}/points`);
-  ref1.on("value", snap => {
-    document.getElementById("score-team1").textContent = `${snap.val() || 0} pts`;
-  });
+    createPlayerControls(team1, "team1Players");
+    createPlayerControls(team2, "team2Players");
 
-  const ref2 = db.ref(`points/${gender}/${team2}/points`);
-  ref2.on("value", snap => {
-    document.getElementById("score-team2").textContent = `${snap.val() || 0} pts`;
-  });
-};
+    db.ref(`points/${gender}/${team1}/points`).on("value", snap => {
+      document.getElementById("score-team1").textContent = `${snap.val() || 0} pts`;
+    });
+    db.ref(`points/${gender}/${team2}/points`).on("value", snap => {
+      document.getElementById("score-team2").textContent = `${snap.val() || 0} pts`;
+    });
+  };
 
-function declareWinner() {
-  const winner = document.getElementById("winnerTeam").value;
-  const loser = winner === team1 ? team2 : team1;
-  const referee = `${document.getElementById("referee1").value}, ${document.getElementById("referee2").value}`;
+  function declareWinner() {
+    const winner = document.getElementById("winnerTeam").value;
+    const loser = winner === team1 ? team2 : team1;
+    const referee = `${document.getElementById("referee1").value}, ${document.getElementById("referee2").value}`;
 
-  db.ref(`points/${gender}/${winner}`).update({ won: firebase.database.ServerValue.increment(1), played: firebase.database.ServerValue.increment(1), points: firebase.database.ServerValue.increment(2) });
-  db.ref(`points/${gender}/${loser}`).update({ lost: firebase.database.ServerValue.increment(1), played: firebase.database.ServerValue.increment(1) });
-  db.ref(`schedule/${date}/${time}`).update({ status: "Completed", winner, referee });
+    if (!referee.trim()) {
+      alert("Please enter referee names before declaring winner.");
+      return;
+    }
 
-  generateMatchSummary(winner, referee);
-}
-
-function generateMatchSummary(winner, referee) {
-  const summary = [
-    `United Volleyball Premier League - Season 5`,
-    `Match: ${team1} vs ${team2}`,
-    `Date: ${date} at ${time}`,
-    `Category: ${gender}`,
-    `Referees: ${referee}`,
-    `Winner: ${winner}`
-  ];
-
-  const scorePromises = [];
-  scorePromises.push(db.ref(`points/${gender}/${team1}/points`).once("value").then(snap => summary.push(`${team1} Score: ${snap.val() || 0}`)));
-  scorePromises.push(db.ref(`points/${gender}/${team2}/points`).once("value").then(snap => summary.push(`${team2} Score: ${snap.val() || 0}`)));
-
-  [team1, team2].forEach(team => {
-    scorePromises.push(db.ref(`players/${gender}/${team}`).once("value").then(snap => {
-      const players = snap.val();
-      summary.push(`${team} Players:`);
-      Object.values(players || {}).forEach(p => summary.push(`${p.name}: ${p.points || 0} pts`));
-    }));
-  });
-
-  Promise.all(scorePromises).then(() => {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.setFontSize(14);
-    doc.setFontSize(30);
-    doc.setTextColor(200, 200, 200);
-    doc.text("UVPL - 5", 105, 150, { align: "center", angle: 45 });
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(14);
-
-    const logo = new Image();
-    logo.src = "https://arunkumaryd.github.io/uvpl-host-dashboard/logo.png";
-    logo.onload = () => {
-      doc.addImage(logo, 'PNG', 150, 10, 40, 20);
-
-      const now = new Date();
-      const footer = `Generated on: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
-      doc.setFontSize(10);
-      doc.text(footer, 10, 290);
-
-      const lines = doc.splitTextToSize(summary.join("\n"), 180);
-      doc.setFontSize(14);
-      doc.text(lines, 10, 20);
-
-      doc.save(`Match_${date}_${team1}_vs_${team2}.pdf`);
-      alert("✅ Match summary PDF downloaded. Closing tab.");
-      setTimeout(() => window.close(), 1500);
+    // Update winner and loser stats in DB atomically
+    const updates = {};
+    updates[`points/${gender}/${winner}/won`] = firebase.database.ServerValue.increment(1);
+    updates[`points/${gender}/${winner}/played`] = firebase.database.ServerValue.increment(1);
+    updates[`points/${gender}/${winner}/points`] = firebase.database.ServerValue.increment(2);
+    updates[`points/${gender}/${loser}/lost`] = firebase.database.ServerValue.increment(1);
+    updates[`points/${gender}/${loser}/played`] = firebase.database.ServerValue.increment(1);
+    updates[`schedule/${date}/${time}`] = {
+      status: "Completed",
+      winner,
+      referee
     };
-  });
-}
+
+    db.ref().update(updates).then(() => {
+      alert(`🏆 Winner declared: ${winner}`);
+    }).catch(e => {
+      alert("Error declaring winner: " + e.message);
+    });
+  }
 </script>
 </body>
 </html>
