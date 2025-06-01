@@ -99,5 +99,42 @@
 
     checkLiveMatch();
   </script>
+  <section id="liveMatch" class="mt-4 p-4 border border-purple-700 rounded">
+  <h2 class="text-xl font-bold text-purple-800 mb-2">🎯 Live / Upcoming Match</h2>
+  <div id="matchInfo">Loading match details...</div>
+</section>
+
+<script>
+  const db = firebase.database();
+  const today = new Date();
+  const todayStr = today.toISOString().split("T")[0];
+
+  db.ref(`schedule/${todayStr}`).once("value", snap => {
+    const data = snap.val();
+    if (!data) {
+      document.getElementById("matchInfo").innerHTML = "<p>No matches scheduled today.</p>";
+      return;
+    }
+
+    let found = false;
+    Object.keys(data).sort().forEach(time => {
+      const match = data[time];
+      if (match.status !== "Completed") {
+        const html = `
+          <p><strong>${match.gender} Match:</strong> ${match.team1} 🆚 ${match.team2}</p>
+          <p><strong>Date:</strong> ${todayStr}, <strong>Time:</strong> ${time}</p>
+          <p><strong>Status:</strong> ${match.status}</p>
+          ${match.status === "Live" ? `<a class="text-red-600" href="live-score.html?gender=${match.gender}&team1=${encodeURIComponent(match.team1)}&team2=${encodeURIComponent(match.team2)}&date=${todayStr}&time=${time}" target="_blank">🔴 View Live Score</a>` : ""}
+        `;
+        document.getElementById("matchInfo").innerHTML = html;
+        found = true;
+      }
+    });
+
+    if (!found) {
+      document.getElementById("matchInfo").innerHTML = "<p>No ongoing or upcoming matches found for today.</p>";
+    }
+  });
+</script>
 </body>
 </html>
