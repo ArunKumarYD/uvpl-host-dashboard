@@ -43,6 +43,13 @@
     .button-link:hover {
       background-color: #4b2c91;
     }
+    .live-box {
+      background: #fff;
+      padding: 1rem;
+      border-radius: 8px;
+      border: 2px solid #2e1065;
+      margin-top: 2rem;
+    }
   </style>
 </head>
 <body>
@@ -56,8 +63,15 @@
     <a class="button-link" href="rules.html">📘 Rules</a>
     <a class="button-link" href="gallery.html">🖼️ Gallery</a>
     <a class="button-link" href="login.html">🔐 Host/Referee Login</a>
-<a class="button-link" href="players.html">🏅 Top Players</a>
+    <a class="button-link" href="players.html">🏅 Top Players</a>
   </section>
+
+  <!-- LIVE / UPCOMING MATCH SECTION -->
+  <section id="liveMatch" class="live-box">
+    <h2 class="text-xl font-bold text-purple-800 mb-2">🎯 Live / Upcoming Match</h2>
+    <div id="matchInfo">Loading match details...</div>
+  </section>
+
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
@@ -65,76 +79,37 @@
 
   <script>
     const db = firebase.database();
-    const liveDiv = document.getElementById("liveMatch");
+    const today = new Date();
+    const todayStr = today.toISOString().split("T")[0];
 
-    function formatTime24ToMinutes(timeStr) {
-      const [h, m] = timeStr.split(":").map(Number);
-      return h * 60 + m;
-    }
+    db.ref(`schedule/${todayStr}`).once("value", snap => {
+      const data = snap.val();
+      const matchDiv = document.getElementById("matchInfo");
 
-    function checkLiveMatch() {
-      const now = new Date();
-      const today = now.toISOString().split("T")[0]; // "YYYY-MM-DD"
-      const nowMinutes = now.getHours() * 60 + now.getMinutes(); // convert to total minutes
+      if (!data) {
+        matchDiv.innerHTML = "<p>No matches scheduled today.</p>";
+        return;
+      }
 
-      db.ref("schedule/" + today).once("value").then(snapshot => {
-        const matches = snapshot.val();
-        if (!matches) return;
-
-        const timeSlots = ["18:00", "18:45", "19:30", "20:15"];
-        for (let time of timeSlots) {
-          const match = matches[time];
-          if (!match) continue;
-
-          const start = formatTime24ToMinutes(time);
-          const end = start + 40; // Assume 40 min per match
-          if (nowMinutes >= start && nowMinutes < end) {
-            liveDiv.innerText = `🔥 LIVE: ${match.team1} vs ${match.team2} (${match.category || match.gender || ''})`;
-            liveDiv.style.display = "block";
-            break;
-          }
+      let found = false;
+      Object.keys(data).sort().forEach(time => {
+        const match = data[time];
+        if (match.status !== "Completed") {
+          const link = `live-score.html?gender=${match.gender}&team1=${encodeURIComponent(match.team1)}&team2=${encodeURIComponent(match.team2)}&date=${todayStr}&time=${encodeURIComponent(time)}`;
+          matchDiv.innerHTML = `
+            <p><strong>${match.gender} Match:</strong> ${match.team1} 🆚 ${match.team2}</p>
+            <p><strong>Date:</strong> ${todayStr}, <strong>Time:</strong> ${time}</p>
+            <p><strong>Status:</strong> ${match.status}</p>
+            ${match.status === "Live" ? `<a class="button-link" href="${link}" target="_blank">🔴 Watch Live</a>` : ""}
+          `;
+          found = true;
         }
       });
-    }
 
-    checkLiveMatch();
-  </script>
-  <section id="liveMatch" class="mt-4 p-4 border border-purple-700 rounded">
-  <h2 class="text-xl font-bold text-purple-800 mb-2">🎯 Live / Upcoming Match</h2>
-  <div id="matchInfo">Loading match details...</div>
-</section>
-
-<script>
-  const db = firebase.database();
-  const today = new Date();
-  const todayStr = today.toISOString().split("T")[0];
-
-  db.ref(`schedule/${todayStr}`).once("value", snap => {
-    const data = snap.val();
-    if (!data) {
-      document.getElementById("matchInfo").innerHTML = "<p>No matches scheduled today.</p>";
-      return;
-    }
-
-    let found = false;
-    Object.keys(data).sort().forEach(time => {
-      const match = data[time];
-      if (match.status !== "Completed") {
-        const html = `
-          <p><strong>${match.gender} Match:</strong> ${match.team1} 🆚 ${match.team2}</p>
-          <p><strong>Date:</strong> ${todayStr}, <strong>Time:</strong> ${time}</p>
-          <p><strong>Status:</strong> ${match.status}</p>
-          ${match.status === "Live" ? `<a class="text-red-600" href="live-score.html?gender=${match.gender}&team1=${encodeURIComponent(match.team1)}&team2=${encodeURIComponent(match.team2)}&date=${todayStr}&time=${time}" target="_blank">🔴 View Live Score</a>` : ""}
-        `;
-        document.getElementById("matchInfo").innerHTML = html;
-        found = true;
+      if (!found) {
+        matchDiv.innerHTML = "<p>No ongoing or upcoming matches today.</p>";
       }
     });
-
-    if (!found) {
-      document.getElementById("matchInfo").innerHTML = "<p>No ongoing or upcoming matches found for today.</p>";
-    }
-  });
-</script>
+  </script>
 </body>
 </html>
