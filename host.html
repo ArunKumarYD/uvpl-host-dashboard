@@ -214,4 +214,16 @@ function updatePointsOnMatchResult(matchPath, matchData) {
     }).catch(err => console.error("❌ Failed to update points:", err));
   });
 }
+  const matchPath = "schedule/2025-05-24_18-06_United Challengers_vs_UC Twistter";
+const matchData = {
+  teamA: "United Challengers",
+  teamB: "UC Twistter",
+  winner: "United Challengers",
+  gender: "Men"
+};
+
+firebase.database().ref(matchPath).update({ winner: matchData.winner }).then(() => {
+  // 🔁 Update points right after winner is saved
+  updatePointsOnMatchResult(matchPath, matchData);
+});
 </html>
