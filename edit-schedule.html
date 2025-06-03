@@ -3,62 +3,85 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Host Dashboard – UVPL</title>
+  <title>Edit Match Schedule – UVPL</title>
   <link rel="stylesheet" href="style.css" />
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f0f4ff;
-      padding: 2rem;
-    }
-    header {
-      background-color: #2e1065;
-      color: white;
-      padding: 1rem;
-      border-radius: 8px;
-      text-align: center;
-    }
-    nav {
-      margin-top: 1rem;
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-    nav a {
-      background-color: #4c1d95;
-      color: white;
-      padding: 0.75rem 1.5rem;
-      border-radius: 6px;
-      text-decoration: none;
-    }
-    nav a:hover {
-      background-color: #6d28d9;
-    }
-    main {
-      margin-top: 2rem;
-    }
-  </style>
 </head>
-<body>
-  <header>
-    <h1>🏐 Host Dashboard – UVPL</h1>
-    <nav>
-      <a href="point.html">📊 Points Table</a>
-      <a href="rules.html">📘 Rules</a>
-      <a href="players.html">🏅 Player Manager</a>
-      <a href="edit-schedule.html" target="_blank">📅 Edit Match Schedule</a>
-      <a href="upload-gallery.html">🖼️ Upload Gallery</a>
-    </nav>
-  </header>
+<body style="font-family: Arial; padding: 2rem;">
+  <h1>📅 Edit Match Schedule</h1>
+  <table border="1" width="100%" id="scheduleTable">
+    <thead>
+      <tr>
+        <th>Date</th><th>Time</th><th>Gender</th><th>Team 1</th><th>Team 2</th><th>Status</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <button onclick="saveSchedule()" style="margin-top: 1rem;">💾 Save Schedule</button>
 
-  <main>
-    <h2>Welcome Host!</h2>
-    <p>Use the navigation above to manage tournament data like points, players, schedule, rules, and gallery.</p>
-  </main>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script>
+    const db = firebase.database();
+    const genders = ["Men", "Women"];
+    const teams = {
+      Men: ["United Challengers", "UC Twistter", "Azraq Astronuts", "IJC Ninjas"],
+      Women: ["United Challengers", "UC Twistter", "Azraq Astronuts", "IJC Ninjas"]
+    };
+    const timeSlots = ["18:00", "18:45", "19:30", "20:15"];
+    const statuses = ["Scheduled", "Live", "Completed"];
 
-  <footer style="margin-top: 2rem; text-align: center; font-size: 0.9rem;">
-    &copy; 2025 United Creation Volleyball Premier League
-  </footer>
+    function createDropdown(options, selected = "") {
+      return `<select>${options.map(opt => `<option ${opt === selected ? "selected" : ""}>${opt}</option>`).join("")}</select>`;
+    }
+
+    function createRow(date = "", time = "18:00", gender = "Men", team1 = "", team2 = "", status = "Scheduled") {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><input type="date" value="${date}" /></td>
+        <td>${createDropdown(timeSlots, time)}</td>
+        <td>${createDropdown(genders, gender)}</td>
+        <td class="team1">${createDropdown(teams[gender], team1)}</td>
+        <td class="team2">${createDropdown(teams[gender], team2)}</td>
+        <td>${createDropdown(statuses, status)}</td>
+      `;
+      row.querySelectorAll("select")[1].addEventListener("change", () => updateTeamDropdowns(row));
+      document.querySelector("tbody").appendChild(row);
+    }
+
+    function updateTeamDropdowns(row) {
+      const gender = row.querySelectorAll("select")[1].value;
+      row.querySelector(".team1").innerHTML = createDropdown(teams[gender]);
+      row.querySelector(".team2").innerHTML = createDropdown(teams[gender]);
+    }
+
+    function saveSchedule() {
+      const rows = document.querySelectorAll("tbody tr");
+      const data = {};
+      rows.forEach(row => {
+        const [date, time, gender, team1, team2, status] = Array.from(row.querySelectorAll("input, select")).map(el => el.value);
+        if (!data[date]) data[date] = {};
+        data[date][time] = { gender, team1, team2, status };
+      });
+      db.ref("schedule").set(data).then(() => alert("✅ Schedule saved successfully!"));
+    }
+
+    function loadSchedule() {
+      db.ref("schedule").once("value", snap => {
+        const data = snap.val();
+        if (!data) return;
+        Object.entries(data).forEach(([date, times]) => {
+          Object.entries(times).forEach(([time, match]) => {
+            createRow(date, time, match.gender, match.team1, match.team2, match.status);
+          });
+        });
+      });
+    }
+
+    window.onload = () => {
+      createRow(); // empty row
+      loadSchedule();
+    };
+  </script>
 </body>
 </html>
