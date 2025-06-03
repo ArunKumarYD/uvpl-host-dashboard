@@ -176,4 +176,42 @@
     };
   </script>
 </body>
+  // ⬇️ Add this full function near the bottom of your main script (but outside any other function)
+function updatePointsOnMatchResult(matchPath, matchData) {
+  const db = firebase.database();
+  const winner = matchData.winner;
+  const teamA = matchData.teamA || matchData.team1;
+  const teamB = matchData.teamB || matchData.team2;
+  const gender = (matchData.gender || matchData.category || "Men").trim();
+
+  if (!winner || !teamA || !teamB) {
+    console.error("Missing team data for match update");
+    return;
+  }
+
+  const loser = winner === teamA ? teamB : teamA;
+  const pointsRef = db.ref("points/" + gender);
+
+  pointsRef.once("value").then(snapshot => {
+    const pointsData = snapshot.val() || {};
+
+    if (!pointsData[winner]) {
+      pointsData[winner] = { played: 0, won: 0, lost: 0, points: 0 };
+    }
+    if (!pointsData[loser]) {
+      pointsData[loser] = { played: 0, won: 0, lost: 0, points: 0 };
+    }
+
+    pointsData[winner].played += 1;
+    pointsData[winner].won += 1;
+    pointsData[winner].points += 2;
+
+    pointsData[loser].played += 1;
+    pointsData[loser].lost += 1;
+
+    pointsRef.set(pointsData).then(() => {
+      console.log("✅ Points updated for", winner, "and", loser);
+    }).catch(err => console.error("❌ Failed to update points:", err));
+  });
+}
 </html>
